@@ -461,7 +461,9 @@ Sub createCarryOutData()
     Dim strSID
     Dim strDate
     Dim strTestRoomNo
+    Dim strReqNo
     Dim fileName
+    Dim maxClm
     Dim plistPath_target
     Dim plistPath_master
     Dim imgPlistPath_target
@@ -482,6 +484,12 @@ Sub createCarryOutData()
     Dim oldFileName, newFileName
     Dim oldFilePath, newFilePath
     Dim FSO As Object
+    Dim arr_ReqNo As Variant
+    Dim maxRow, maxRow3
+    Dim fromRow
+    Dim toRow
+    Dim cntRow
+    Dim matchRow
     
     'サンプル業務番号入力(初回のみ)
     With ThisWorkbook.Sheets("SampleList")
@@ -502,7 +510,25 @@ Sub createCarryOutData()
     If strTestRoomNo = "" Then
         Exit Sub
     End If
-
+    
+    '持出試験項目入力データ取得
+    With ThisWorkbook.Sheets("SampleList")
+        maxClm = .Cells(1, 16384).End(xlToLeft).Column 'チェックボックス情報エリアの最終列番号取得
+        
+        'チェックボックス情報エリアの各列ごとに処理を繰り返す
+        If maxClm >= 14 Then
+            For i = 14 To maxClm
+                strReqNo = strReqNo & "," & .Cells(1, i)    '複数試験項目名をカンマでつなげていく
+            Next i
+            strReqNo = Replace(Mid(strReqNo, 2), " ", "")
+        End If
+    End With
+    
+    'マスターにチェックボックス情報(試験項目名)が存在する場合のみ、入力ボックスを表示する
+    If strReqNo <> "" Then
+        strReqNo = InputBox("持ち出したい試験項目(過去実施分)があれば指定してください。" & Chr(10) & Chr(10) & "※スマホ操作が重くなる為、" & Chr(10) & "「指定なし(空欄)」または「必要最小限の指定」にする事。", , strReqNo)
+    End If
+    
     '持出データ名：SampleList_「日付」_「設備名」.plist
     fileName = "SampleList_" & strDate & "_" & strTestRoomNo
     
@@ -632,8 +658,76 @@ Sub createCarryOutData()
                 MsgBox ("処理を中止します")
                 Exit Sub
             End If
+            
         End If
         
+        '持出データのチェックボックス情報を指定試験項目のみに更新する
+        With ThisWorkbook.Sheets("wk_Eno")
+            .Cells(1, 3) = imgPlistPath_target  '持出データのフォルダパスを指定
+        End With
+        
+        'PLISTデータ読込処理
+        Call loadImgPlist(20, 1)
+        
+        '「使用機器wkシート」
+        With ThisWorkbook.Sheets("wk_cb")
+        
+            '同シートにチェックボックス情報がある場合のみ処理する
+            maxRow = .Cells(1048576, 2).End(xlUp).Row
+            If maxRow >= 20 Then
+            
+                '初期値セット
+                maxRow3 = 19    '一時エリアの最終行番号
+                matchRow = 0
+                fromRow = 0
+                .Range(.Columns(9), .Columns(12)).Clear '書き出しエリア(一時エリア)クリア
+                
+                '入力持込試験項目情報が空欄の場合、書き出しエリア(持込データエリア)クリア＝持込データ内のチェックボックス情報を削除する
+                If strReqNo = "" Then
+                    .Range(.Columns(1), .Columns(4)).Clear
+                    
+                '入力持込試験項目情報が指定ありの場合
+                Else
+                    arr_ReqNo = Split(strReqNo, ",")    '入力持込試験項目情報をカンマで分割⇒配列格納
+                    
+                    '入力持込試験項目ごとに処理を繰り返す
+                    For i = 0 To UBound(arr_ReqNo)
+                        On Error Resume Next
+                        matchRow = WorksheetFunction.Match(arr_ReqNo(i), .Columns(3), 0)    '持込データ内のチェックボックス情報から入力試験項目名と一致する行番号を取得
+                        On Error GoTo 0
+                        
+                        '一致行がある場合
+                        If matchRow <> 0 Then
+                        
+                            'マッチングがエラーした場合、matchRowがかわらない(0にならない)⇒処理をスルーする
+                            If fromRow = matchRow Then
+                                '処理なし
+                                
+                            'マッチングがエラーしなかった場合
+                            Else
+                                fromRow = matchRow                              'マッチエリア開始行番号
+                                toRow = .Cells(matchRow, 4).End(xlDown).Row - 1 'マッチエリア終了行番号
+                                If toRow > maxRow Then
+                                    toRow = maxRow
+                                End If
+                                cntRow = toRow - fromRow + 1                    'マッチエリア行数
+                                .Range(.Cells(fromRow, 1), .Cells(toRow, 4)).Copy Destination:=.Cells(maxRow3 + 1, 9)    'コピー先⇒一時エリアの末尾
+                                maxRow3 = maxRow3 + cntRow  '一時エリアの最終行番号を更新
+                            End If
+                        End If
+                    Next i
+    
+                    '一時エリア列と持込データ列を入れ替え
+                    .Range(.Columns(9), .Columns(12)).Copy Destination:=.Cells(1, 1)
+                    
+                End If
+                    
+                '持込データPLIST保存
+                Call applyPlist
+            
+            End If
+        End With
+
     'zipファイルがない場合、「.plist」Masterデータをコピーして持出データを作成する
     Else
         FileCopy plistPath_master, plistPath_target
