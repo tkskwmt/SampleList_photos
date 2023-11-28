@@ -1,5 +1,6 @@
 Attribute VB_Name = "Module2"
 Option Explicit
+Private Declare PtrSafe Sub Sleep Lib "kernel32" (ByVal dwMilliseconds As Long)
 Sub selectFileMaster()
     '**********************************
     '   PLIST-Masterデータ選択処理
@@ -1204,7 +1205,7 @@ Public Sub ZipFileOrFolder(ByVal SrcPath As Variant, Optional ByVal DestFolderPa
         With .Namespace(DestFilePath)
             .CopyHere SrcPath
             While .Items.Count < 1
-                DoEvents
+                Call Sleep(300)
             Wend
         End With
     End With
