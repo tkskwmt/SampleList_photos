@@ -502,7 +502,7 @@ Sub unzipFile(plistPath)
     
     Dim zipFilePath
     Dim psCommand
-    Dim wsh As Object
+    Dim WSH As Object
     Dim result
     Dim posFld
     Dim toFolderPath
@@ -524,7 +524,7 @@ Sub unzipFile(plistPath)
         toFolderPath = Mid(plistPath, 1, posFld - 1)
         
         'ZIPファイル解凍準備
-        Set wsh = CreateObject("WScript.Shell")
+        Set WSH = CreateObject("WScript.Shell")
         
         'ファイルパスに含まれる特殊文字をエスケープする
         zipFilePath = Replace(zipFilePath, " ", "' '")
@@ -538,11 +538,11 @@ Sub unzipFile(plistPath)
         
         'ZIPファイル解凍コマンド＆実行
         psCommand = "powershell -NoProfile -ExecutionPolicy Unrestricted Expand-Archive -Path """ & zipFilePath & """ -DestinationPath """ & toFolderPath & """ -Force"
-        result = wsh.Run(psCommand, WindowStyle:=0, WaitOnReturn:=True)
+        result = WSH.Run(psCommand, WindowStyle:=0, WaitOnReturn:=True)
     End With
     
     '終了処理
-    Set wsh = Nothing
+    Set WSH = Nothing
 
 End Sub
 Sub comparePlist()
@@ -1057,14 +1057,13 @@ Sub mergeZip()
     Dim masterDirFile
     Dim masterDirFilename
     Dim thumbnailDir
-    Dim thumbnailDirFile
     Dim updatedDir
     Dim updatedDirFile
     Dim updatedDirFilename
     Dim zipSrcFolder
     Dim toFolder
     Dim execCommand
-    Dim wsh As Object
+    Dim WSH As Object
     Dim result
     
     'Masterデータ(写真)フォルダ
@@ -1132,15 +1131,13 @@ Sub mergeZip()
     End If
     'Masterデータフォルダ内の先頭画像ファイル名(=写真名)を取得する
     masterDirFilename = Dir(masterDir & "\*.jpg")
+    
     'Masterデータフォルダ内の画像ファイルごとに繰り返す
-    Set wsh = CreateObject("WScript.Shell")
+    Set WSH = CreateObject("WScript.Shell")
     Do While masterDirFilename <> ""
-        masterDirFile = masterDir & "\" & updatedDirFilename    'Masterデータ画像ファイルパス
-        thumbnailDirFile = thumbnailDir & "\#" & masterDirFilename  'サムネイル画像ファイルパス
         
-        'execCommand = "magick """ & masterDirFile & """ -geometry 2.6% """ & thumbnailDirFile & """"
         execCommand = "cd " & masterDir & " & cd .. & magick SampleList\" & masterDirFilename & " -geometry 2.3% thumbnail\#" & masterDirFilename
-        result = wsh.Run(Command:="%ComSpec% /c " & execCommand, WindowStyle:=0, WaitOnReturn:=True)
+        result = WSH.Run(Command:="%ComSpec% /c " & execCommand, WindowStyle:=0, WaitOnReturn:=True)
         If result <> 0 Then
             MsgBox (execCommand)
         End If
@@ -1175,14 +1172,14 @@ Public Sub ZipFileOrFolder2(ByVal SrcPath As Variant)
     
     Dim DestFilePath
     Dim psCommand
-    Dim wsh As Object
+    Dim WSH As Object
     Dim result
     
     '出力先ZIPファイルパス
     DestFilePath = SrcPath & ".zip"
     
     'ZIP圧縮準備
-    Set wsh = CreateObject("WScript.Shell")
+    Set WSH = CreateObject("WScript.Shell")
     
     'ファイルパスに含まれる特殊文字をエスケープする
     SrcPath = Replace(SrcPath, " ", "' '")
@@ -1196,10 +1193,10 @@ Public Sub ZipFileOrFolder2(ByVal SrcPath As Variant)
     
     'ZIP圧縮コマンド＆実行
     psCommand = "powershell -NoProfile -ExecutionPolicy Unrestricted Compress-Archive -Path """ & SrcPath & """ -DestinationPath """ & DestFilePath & """ -Force"
-    result = wsh.Run(psCommand, WindowStyle:=0, WaitOnReturn:=True)
+    result = WSH.Run(psCommand, WindowStyle:=0, WaitOnReturn:=True)
     
     '終了処理
-    Set wsh = Nothing
+    Set WSH = Nothing
 
 
 End Sub
