@@ -502,7 +502,7 @@ Sub unzipFile(plistPath)
     
     Dim zipFilePath
     Dim psCommand
-    Dim WSH As Object
+    Dim wsh As Object
     Dim result
     Dim posFld
     Dim toFolderPath
@@ -524,7 +524,7 @@ Sub unzipFile(plistPath)
         toFolderPath = Mid(plistPath, 1, posFld - 1)
         
         'ZIPファイル解凍準備
-        Set WSH = CreateObject("WScript.Shell")
+        Set wsh = CreateObject("WScript.Shell")
         
         'ファイルパスに含まれる特殊文字をエスケープする
         zipFilePath = Replace(zipFilePath, " ", "' '")
@@ -538,11 +538,11 @@ Sub unzipFile(plistPath)
         
         'ZIPファイル解凍コマンド＆実行
         psCommand = "powershell -NoProfile -ExecutionPolicy Unrestricted Expand-Archive -Path """ & zipFilePath & """ -DestinationPath """ & toFolderPath & """ -Force"
-        result = WSH.Run(psCommand, WindowStyle:=0, WaitOnReturn:=True)
+        result = wsh.Run(psCommand, WindowStyle:=0, WaitOnReturn:=True)
     End With
     
     '終了処理
-    Set WSH = Nothing
+    Set wsh = Nothing
 
 End Sub
 Sub comparePlist()
@@ -1055,14 +1055,21 @@ Sub mergeZip()
     
     Dim masterDir
     Dim masterDirFile
+    Dim masterDirFilename
+    Dim thumbnailDir
+    Dim thumbnailDirFile
     Dim updatedDir
     Dim updatedDirFile
     Dim updatedDirFilename
     Dim zipSrcFolder
     Dim toFolder
+    Dim execCommand
+    Dim wsh As Object
+    Dim result
     
     'Masterデータ(写真)フォルダ
     masterDir = ThisWorkbook.Path & "\Master\SampleList"
+    thumbnailDir = ThisWorkbook.Path & "\Master\thumbnail"
     
     'Masterデータフォルダがない場合は新規作成する
     If Dir(masterDir, vbDirectory) = "" Then
@@ -1118,6 +1125,29 @@ Sub mergeZip()
         End With
     End If
     
+    '***サムネイル画像を出力する***
+    'サムネイル画像フォルダがない場合は新規作成する
+    If Dir(thumbnailDir, vbDirectory) = "" Then
+        MkDir thumbnailDir
+    End If
+    'Masterデータフォルダ内の先頭画像ファイル名(=写真名)を取得する
+    masterDirFilename = Dir(masterDir & "\*.jpg")
+    'Masterデータフォルダ内の画像ファイルごとに繰り返す
+    Set wsh = CreateObject("WScript.Shell")
+    Do While masterDirFilename <> ""
+        masterDirFile = masterDir & "\" & updatedDirFilename    'Masterデータ画像ファイルパス
+        thumbnailDirFile = thumbnailDir & "\#" & masterDirFilename  'サムネイル画像ファイルパス
+        
+        'execCommand = "magick """ & masterDirFile & """ -geometry 2.6% """ & thumbnailDirFile & """"
+        execCommand = "cd " & masterDir & " & cd .. & magick SampleList\" & masterDirFilename & " -geometry 2.3% thumbnail\#" & masterDirFilename
+        result = wsh.Run(Command:="%ComSpec% /c " & execCommand, WindowStyle:=0, WaitOnReturn:=True)
+        If result <> 0 Then
+            MsgBox (execCommand)
+        End If
+        masterDirFilename = Dir()  '持込データフォルダ内の次の画像ファイル名を取得する
+        
+    Loop
+    
     'ZIP圧縮ファイルの保存先フォルダ(＝Masterデータフォルダ「SampleList\」の一つ上の階層フォルダ)を指定する
     toFolder = Mid(masterDir, 1, InStrRev(masterDir, "\") - 1)
     
@@ -1145,14 +1175,14 @@ Public Sub ZipFileOrFolder2(ByVal SrcPath As Variant)
     
     Dim DestFilePath
     Dim psCommand
-    Dim WSH As Object
+    Dim wsh As Object
     Dim result
     
     '出力先ZIPファイルパス
     DestFilePath = SrcPath & ".zip"
     
     'ZIP圧縮準備
-    Set WSH = CreateObject("WScript.Shell")
+    Set wsh = CreateObject("WScript.Shell")
     
     'ファイルパスに含まれる特殊文字をエスケープする
     SrcPath = Replace(SrcPath, " ", "' '")
@@ -1166,10 +1196,10 @@ Public Sub ZipFileOrFolder2(ByVal SrcPath As Variant)
     
     'ZIP圧縮コマンド＆実行
     psCommand = "powershell -NoProfile -ExecutionPolicy Unrestricted Compress-Archive -Path """ & SrcPath & """ -DestinationPath """ & DestFilePath & """ -Force"
-    result = WSH.Run(psCommand, WindowStyle:=0, WaitOnReturn:=True)
+    result = wsh.Run(psCommand, WindowStyle:=0, WaitOnReturn:=True)
     
     '終了処理
-    Set WSH = Nothing
+    Set wsh = Nothing
 
 
 End Sub
@@ -1429,7 +1459,7 @@ Sub applySampleList()
     Dim arr3(1000, 1000) As Variant
     Dim arr4 As Variant
     Dim i, j, k, m
-    Dim targetImage, imageName, img_size
+    Dim targetImage, thumbnailImage, imageName, img_size
     Dim cntColumn
     
     '*************************
@@ -1548,6 +1578,8 @@ Sub applySampleList()
                 '画像ファイルパス取得
                 imageName = .Cells(cntRow, cntClm)
                 targetImage = Replace(ThisWorkbook.Sheets("wk_Eno").Cells(1, 3), "&img.plist", "") & "\" & imageName
+                thumbnailImage = Replace(ThisWorkbook.Sheets("wk_Eno").Cells(1, 3), "&img.plist", "") & "\#" & imageName
+                thumbnailImage = Replace(thumbnailImage, "\SampleList\", "\thumbnail\")
                 img_size = ThisWorkbook.Sheets("wk_Eno").Cells(16, 9)   'イメージ縮小サイズ
                 
                 '画像ファイル(サムネイル)のシート貼り付け位置調整考慮
@@ -1557,7 +1589,7 @@ Sub applySampleList()
                 
                 '画像ファイル(サムネイル)貼り付け
                 Set myShape = .Shapes.AddPicture( _
-                              fileName:=targetImage, _
+                              fileName:=thumbnailImage, _
                               LinkToFile:=False, _
                               SaveWithDocument:=True, _
                               Left:=.Cells(cntRow, cntClm).Left, _
@@ -1575,9 +1607,9 @@ Sub applySampleList()
                     .ScaleHeight img_size, msoTrue
                     .ScaleWidth img_size, msoTrue
                     .Left = .Left + 1
-                    .Select
-                    Application.SendKeys "%s~"
-                    Application.CommandBars.ExecuteMso "PicturesCompress"
+                    '.Select
+                    'Application.SendKeys "%s~"
+                    'Application.CommandBars.ExecuteMso "PicturesCompress"
                 End With
                                 
                 '画像ファイル(サムネイル)のシート貼り付け位置調整考慮
