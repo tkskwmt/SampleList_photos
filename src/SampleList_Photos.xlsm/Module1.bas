@@ -50,20 +50,20 @@ Sub createMasterData()
     strEqNo = Replace(strEqNo, " ", "")
     strEqNo = Replace(strEqNo, "　", "")
     
-    '未入力なら処理中止
+    '未入力なら処理を中止する
     If strEqNo = "" Then
         MsgBox ("処理を中止します。(機器No未入力)")
         GoTo abort
     End If
     
     '機器Noを「SampleList」シートに書き出し
-    eqNoClm = 6
+    eqNoClm = 7
     toClm = 13
     wtRow = 2
     With ThisWorkbook.Sheets("SampleList")
     
         '書き出しエリアクリア
-        .Range(.Cells(2, eqNoClm), .Cells(1048576, eqNoClm)).ClearContents
+        .Range(.Cells(2, eqNoClm - 1), .Cells(1048576, eqNoClm)).ClearContents
     
         arrEqNo = Split(strEqNo, ",")
         For i = 0 To UBound(arrEqNo)
@@ -117,6 +117,9 @@ Sub createMasterData()
             End If
             'デバッグ用
             'MsgBox ("fromNum: " & fromNum & " toNum: " & toNum)
+            
+            '機器Noの接頭語の切り替わり位置をマーキングする
+            .Cells(wtRow, eqNoClm - 1) = strPre
             
             '機器Noの開始番号から終了番号まで処理を繰り返す
             For j = CInt(fromNum) To CInt(toNum)
@@ -202,14 +205,15 @@ Sub createPlist(eqNoClm)
     Dim fileData    As Variant
     Dim find()      As Variant
     Dim rep()       As Variant
-    Dim i        As Integer
+    Dim i, j        As Integer
     Dim tempFile
-    Dim startRow, maxRow
+    Dim startRow, maxRow, fromRow, toRow
+    Dim mainCategoryName
     
     With ThisWorkbook.Sheets("SampleList")
     
         tempFile = "c:\\temp\\temp.plist"   '一時ファイル
-        fileName = ThisWorkbook.Path & "\Master\SampleList&img.plist" 'new plist(=Masterデータ)⇒Master(Excel)の同一階層の「Master」フォルダに出力される
+        fileName = ThisWorkbook.Path & "\Master\SampleList.plist" 'new plist(=Masterデータ)⇒Master(Excel)の同一階層の「Master」フォルダに出力される
                 
         'XMLファイル出力準備
         Set xmlDoc = New MSXML2.DOMDocument60
@@ -223,37 +227,49 @@ Sub createPlist(eqNoClm)
         maxRow = .Cells(1048576, eqNoClm).End(xlUp).Row  '最終行番号
         
         '上記情報をもとにXMLタグ情報を出力する
-        'mainCategory情報タグ出力(1回のみ)
-        Set node(3) = node(2).appendChild(xmlDoc.createNode(NODE_ELEMENT, "dict", ""))
-        Set node(4) = node(3).appendChild(xmlDoc.createNode(NODE_ELEMENT, "key", ""))
-        node(4).Text = "items"
-        Set node(4) = node(3).appendChild(xmlDoc.createNode(NODE_ELEMENT, "array", ""))
-        
-        'subCategory関連情報タグ出力
         For i = startRow To maxRow
-            Set node(5) = node(4).appendChild(xmlDoc.createNode(NODE_ELEMENT, "dict", ""))
-            Set node(6) = node(5).appendChild(xmlDoc.createNode(NODE_ELEMENT, "key", ""))
-            node(6).Text = "countStoredImages"
-            Set node(6) = node(5).appendChild(xmlDoc.createNode(NODE_ELEMENT, "integer", ""))
-            node(6).Text = "0"  'デフォルト値
-            Set node(6) = node(5).appendChild(xmlDoc.createNode(NODE_ELEMENT, "key", ""))
-            node(6).Text = "images"
-            Set node(6) = node(5).appendChild(xmlDoc.createNode(NODE_ELEMENT, "array", ""))
-            Set node(6) = node(5).appendChild(xmlDoc.createNode(NODE_ELEMENT, "key", ""))
-            node(6).Text = "subCategory"
-            Set node(6) = node(5).appendChild(xmlDoc.createNode(NODE_ELEMENT, "string", ""))
-            node(6).Text = .Cells(i, eqNoClm)   'サブカテゴリ名
+            If .Cells(i, eqNoClm - 1) <> "" Then
+                mainCategoryName = "@-" & .Cells(i, eqNoClm - 1)
+                fromRow = i
+                toRow = .Cells(i, eqNoClm - 1).End(xlDown).Row - 1
+                If toRow > maxRow Then
+                    toRow = maxRow
+                End If
+            
+                'mainCategory関連情報タグ出力1
+                Set node(3) = node(2).appendChild(xmlDoc.createNode(NODE_ELEMENT, "dict", ""))
+                Set node(4) = node(3).appendChild(xmlDoc.createNode(NODE_ELEMENT, "key", ""))
+                node(4).Text = "items"
+                Set node(4) = node(3).appendChild(xmlDoc.createNode(NODE_ELEMENT, "array", ""))
+                
+                'subCategory関連情報タグ出力
+                For j = fromRow To toRow
+                    Set node(5) = node(4).appendChild(xmlDoc.createNode(NODE_ELEMENT, "dict", ""))
+                    Set node(6) = node(5).appendChild(xmlDoc.createNode(NODE_ELEMENT, "key", ""))
+                    node(6).Text = "countStoredImages"
+                    Set node(6) = node(5).appendChild(xmlDoc.createNode(NODE_ELEMENT, "integer", ""))
+                    node(6).Text = "0"  'デフォルト値
+                    Set node(6) = node(5).appendChild(xmlDoc.createNode(NODE_ELEMENT, "key", ""))
+                    node(6).Text = "images"
+                    Set node(6) = node(5).appendChild(xmlDoc.createNode(NODE_ELEMENT, "array", ""))
+                    Set node(6) = node(5).appendChild(xmlDoc.createNode(NODE_ELEMENT, "key", ""))
+                    node(6).Text = "subCategory"
+                    Set node(6) = node(5).appendChild(xmlDoc.createNode(NODE_ELEMENT, "string", ""))
+                    node(6).Text = .Cells(j, eqNoClm)   'サブカテゴリ名
+                Next j
+            
+                'mainCategory関連情報タグ出力2
+                Set node(4) = node(3).appendChild(xmlDoc.createNode(NODE_ELEMENT, "key", ""))
+                node(4).Text = "mainCategory"
+                Set node(4) = node(3).appendChild(xmlDoc.createNode(NODE_ELEMENT, "string", ""))
+                node(4).Text = mainCategoryName 'メインカテゴリ名
+                Set node(4) = node(3).appendChild(xmlDoc.createNode(NODE_ELEMENT, "key", ""))
+                node(4).Text = "subFolderMode"
+                Set node(4) = node(3).appendChild(xmlDoc.createNode(NODE_ELEMENT, "integer", ""))
+                node(4).Text = "0"  'デフォルト値
+            End If
         Next i
-        
-        'mainCategory関連情報タグ出力
-        Set node(4) = node(3).appendChild(xmlDoc.createNode(NODE_ELEMENT, "key", ""))
-        node(4).Text = "mainCategory"
-        Set node(4) = node(3).appendChild(xmlDoc.createNode(NODE_ELEMENT, "string", ""))
-        node(4).Text = "SampleList" 'メインカテゴリ名
-        Set node(4) = node(3).appendChild(xmlDoc.createNode(NODE_ELEMENT, "key", ""))
-        node(4).Text = "subFolderMode"
-        Set node(4) = node(3).appendChild(xmlDoc.createNode(NODE_ELEMENT, "integer", ""))
-            node(4).Text = "0"  'デフォルト値
+            
     End With
     
     xmlDoc.Save (tempFile)  '一時ファイル保存
@@ -366,7 +382,7 @@ Sub editSampleID()
     '**********************************
     Dim strSID
     Dim tempFile
-    Dim imgPlistPath_master
+    Dim plistPath_master
     Dim find
     Dim rep
     Dim fileData
@@ -392,15 +408,15 @@ Sub editSampleID()
         End If
     End With
     
-    '【PLIST名(写真あり)】Masterデータ: SampleList&img.plist
-    imgPlistPath_master = ThisWorkbook.Path & "\Master\SampleList&img.plist"
+    '【PLIST名】Masterデータ: SampleList.plist
+    plistPath_master = ThisWorkbook.Path & "\Master\SampleList.plist"
     
     'PLIST-Masterデータ内のmainCategory名を「サンプル業務番号」で上書きする
     tempFile = "c:\\temp\\temp.plist"   '一時ファイル
-    FileCopy imgPlistPath_master, tempFile
+    FileCopy plistPath_master, tempFile
     
     Open tempFile For Input As #1               '入力ファイル(=一時ファイル)
-    Open imgPlistPath_master For Output As #2   '出力ファイル(=PLIST-Masterデータ)
+    Open plistPath_master For Output As #2   '出力ファイル(=PLIST-Masterデータ)
     
     '一時ファイルの所定ワードを修正する
     Set reg = CreateObject("VBScript.RegExp")
@@ -409,8 +425,8 @@ Sub editSampleID()
         .IgnoreCase = True
         .Global = True
     End With
-    find = Array("<string>SampleList</string>")
-    rep = Array("<string>" & strSID & "</string>")
+    find = Array("<string>@")
+    rep = Array("<string>" & strSID)
     
     '一時ファイルからMasterデータに書き出し
     Do Until EOF(1)
@@ -448,7 +464,7 @@ Sub editSampleID()
     End If
     
     '処理終了
-    MsgBox ("Completed")
+    MsgBox ("処理終了")
 End Sub
 Sub createCarryOutData()
     '**********************************
@@ -466,8 +482,6 @@ Sub createCarryOutData()
     Dim maxClm
     Dim plistPath_target
     Dim plistPath_master
-    Dim imgPlistPath_target
-    Dim imgPlistPath_master
     Dim zipPath_target
     Dim zipPath_master
     Dim folderPath_target
@@ -532,13 +546,9 @@ Sub createCarryOutData()
     '持出データ名：SampleList_「日付」_「設備名」.plist
     fileName = "SampleList_" & strDate & "_" & strTestRoomNo
     
-    '【PLIST名(写真なし)】Masterデータ: SampleList.plist
+    '【PLIST名】Masterデータ: SampleList.plist
     plistPath_target = ThisWorkbook.Path & "\" & fileName & ".plist"
     plistPath_master = ThisWorkbook.Path & "\Master\SampleList.plist"
-    
-    '【PLIST名(写真あり)】Masterデータ: SampleList&img.plist
-    imgPlistPath_target = ThisWorkbook.Path & "\" & fileName & "&img.plist"
-    imgPlistPath_master = ThisWorkbook.Path & "\Master\SampleList&img.plist"
     
     '【ZIPファイル名】Masterデータ: SampleLost.zip
     zipPath_target = ThisWorkbook.Path & "\" & fileName & ".zip"
@@ -551,10 +561,10 @@ Sub createCarryOutData()
     
     '【追加処理】PLIST-Masterデータ内のmainCategory名を「サンプル業務番号」に置き換える
     tempFile = "c:\\temp\\temp.plist"   '一時ファイル
-    FileCopy imgPlistPath_master, tempFile
+    FileCopy plistPath_master, tempFile
     
     Open tempFile For Input As #1               '入力ファイル(=一時ファイル)
-    Open imgPlistPath_master For Output As #2   '出力ファイル(=PLIST-Masterデータ)
+    Open plistPath_master For Output As #2   '出力ファイル(=PLIST-Masterデータ)
     
     '一時ファイルの所定ワードを修正する
     find = Array("<string>SampleList</string>")
@@ -575,17 +585,17 @@ Sub createCarryOutData()
         Kill tempFile   '一時ファイル削除
     End If
     
-    'zipファイルがある場合、「zip」Masterデータと「&img.plist」Masterデータをコピーして持出データを作成する
+    'zipファイルがある場合、「zip」Masterデータと「.plist」Masterデータをコピーして持出データを作成する
     If Dir(zipPath_master) <> "" Then
    
         '既存ファイルがない場合
-        If Dir(zipPath_target) = "" And Dir(imgPlistPath_target) = "" Then
+        If Dir(zipPath_target) = "" And Dir(plistPath_target) = "" Then
             
-            '「&img.plist」をコピー
-            FileCopy imgPlistPath_master, imgPlistPath_target
+            '「.plist」をコピー
+            FileCopy plistPath_master, plistPath_target
             
             'zipファイル解凍処理
-            Call unzipFile(imgPlistPath_master)
+            Call unzipFile(plistPath_master)
             
             '解凍フォルダリネーム & zip対象フォルダ圧縮
             If Dir(folderPath_target, vbDirectory) <> "" Then
@@ -616,16 +626,16 @@ Sub createCarryOutData()
         Else
         
             '確認メッセージ表示
-            strYN = MsgBox("以下のファイルを上書きしますか？" & Chr(10) & imgPlistPath_target & Chr(10) & zipPath_target, vbYesNo)
+            strYN = MsgBox("以下のファイルを上書きしますか？" & Chr(10) & plistPath_target & Chr(10) & zipPath_target, vbYesNo)
             
             '「Yes」の場合
             If strYN = vbYes Then
             
-                '「&img.plist」をコピー
-                FileCopy imgPlistPath_master, imgPlistPath_target
+                '「.plist」をコピー
+                FileCopy plistPath_master, plistPath_target
                 
                 'zipファイル解凍処理
-                Call unzipFile(imgPlistPath_master)
+                Call unzipFile(plistPath_master)
                 
                 '解凍フォルダリネーム & zip対象フォルダ圧縮
                 If Dir(folderPath_target, vbDirectory) <> "" Then
@@ -663,71 +673,12 @@ Sub createCarryOutData()
         
         '持出データのチェックボックス情報を指定試験項目のみに更新する
         With ThisWorkbook.Sheets("wk_Eno")
-            .Cells(1, 3) = imgPlistPath_target  '持出データのフォルダパスを指定
+            .Cells(1, 3) = plistPath_target  '持出データのフォルダパスを指定
         End With
         
         'PLISTデータ読込処理
-        Call loadImgPlist(20, 1)
+        Call loadPlist(20, 1)
         
-        '「使用機器wkシート」
-        With ThisWorkbook.Sheets("wk_cb")
-        
-            '同シートにチェックボックス情報がある場合のみ処理する
-            maxRow = .Cells(1048576, 2).End(xlUp).Row
-            If maxRow >= 20 Then
-            
-                '初期値セット
-                maxRow3 = 19    '一時エリアの最終行番号
-                matchRow = 0
-                fromRow = 0
-                .Range(.Columns(9), .Columns(12)).Clear '書き出しエリア(一時エリア)クリア
-                
-                '入力持込試験項目情報が空欄の場合、書き出しエリア(持込データエリア)クリア＝持込データ内のチェックボックス情報を削除する
-                If strReqNo = "" Then
-                    .Range(.Columns(1), .Columns(4)).Clear
-                    
-                '入力持込試験項目情報が指定ありの場合
-                Else
-                    arr_ReqNo = Split(strReqNo, ",")    '入力持込試験項目情報をカンマで分割⇒配列格納
-                    
-                    '入力持込試験項目ごとに処理を繰り返す
-                    For i = 0 To UBound(arr_ReqNo)
-                        On Error Resume Next
-                        matchRow = WorksheetFunction.Match(arr_ReqNo(i), .Columns(3), 0)    '持込データ内のチェックボックス情報から入力試験項目名と一致する行番号を取得
-                        On Error GoTo 0
-                        
-                        '一致行がある場合
-                        If matchRow <> 0 Then
-                        
-                            'マッチングがエラーした場合、matchRowがかわらない(0にならない)⇒処理をスルーする
-                            If fromRow = matchRow Then
-                                '処理なし
-                                
-                            'マッチングがエラーしなかった場合
-                            Else
-                                fromRow = matchRow                              'マッチエリア開始行番号
-                                toRow = .Cells(matchRow, 4).End(xlDown).Row - 1 'マッチエリア終了行番号
-                                If toRow > maxRow Then
-                                    toRow = maxRow
-                                End If
-                                cntRow = toRow - fromRow + 1                    'マッチエリア行数
-                                .Range(.Cells(fromRow, 1), .Cells(toRow, 4)).Copy Destination:=.Cells(maxRow3 + 1, 9)    'コピー先⇒一時エリアの末尾
-                                maxRow3 = maxRow3 + cntRow  '一時エリアの最終行番号を更新
-                            End If
-                        End If
-                    Next i
-    
-                    '一時エリア列と持込データ列を入れ替え
-                    .Range(.Columns(9), .Columns(12)).Copy Destination:=.Cells(1, 1)
-                    
-                End If
-                    
-                '持込データPLIST保存
-                Call applyPlist
-            
-            End If
-        End With
-
     'zipファイルがない場合、「.plist」Masterデータをコピーして持出データを作成する
     Else
         FileCopy plistPath_master, plistPath_target
@@ -768,8 +719,6 @@ Sub applyCarryInData()
     Dim startColumn
     Dim plistPath_target
     Dim plistPath_master
-    Dim imgPlistPath_target
-    Dim imgPlistPath_master
     Dim zipPath_target
     Dim folderPath_target
     Dim folderPath_master
@@ -780,7 +729,6 @@ Sub applyCarryInData()
     Dim oldFilePath, newFilePath
     
     plistPath_master = ThisWorkbook.Path & "\Master\SampleList.plist"         '初回PLIST-Masterデータ(.plist)
-    imgPlistPath_master = ThisWorkbook.Path & "\Master\SampleList&img.plist"  'PLIST-Masterデータ(&img.plist)
     
     'PLIST-持込データ読込処理
     startRow = 20
@@ -805,28 +753,21 @@ Sub applyCarryInData()
     End If
     
     'PLIST-持込データ読込処理
-    Call loadImgPlist(startRow, startColumn)
+    Call loadPlist(startRow, startColumn)
     
     '【追加】PLIST-持込データ-サンプル業務番号チェック
-    If ThisWorkbook.Sheets("wk_Eno").Cells(startRow, 7) <> ThisWorkbook.Sheets("SampleList").Cells(1, 1) Then
+    If InStr(ThisWorkbook.Sheets("wk_Eno").Cells(startRow, 7), ThisWorkbook.Sheets("SampleList").Cells(1, 1)) = 0 Then
         MsgBox ("持込データのサンプル業務番号が一致しません。処理を中止します。")
         Exit Sub
     End If
     
     'Masterデータ読込
-    'PLIST-Masterデータ(&img.plist)がある場合、同データパスをセットする
-    If Dir(imgPlistPath_master) <> "" Then
-        ThisWorkbook.Sheets("wk_Eno").Cells(1, 3) = imgPlistPath_master
-        
-    'PLIST-Masterデータ(&img.plist)がない場合、初回PLIST-Masterデータ(.plist)があれば、同データパスをセットする
-    ElseIf Dir(plistPath_master) <> "" Then
-        ThisWorkbook.Sheets("wk_Eno").Cells(1, 3) = plistPath_master
-    End If
+    ThisWorkbook.Sheets("wk_Eno").Cells(1, 3) = plistPath_master
         
     'PLIST-Masterデータ読込処理
     startRow = 20
     startColumn = 1
-    Call loadImgPlist(startRow, startColumn)
+    Call loadPlist(startRow, startColumn)
     
     'ZIP-Masterデータ解凍処理
     Call unzipFileMaster
@@ -845,20 +786,9 @@ Sub applyCarryInData()
 
     'Master(Excel)更新反映処理
     Call applySampleList
-    
-    '初回PLIST-Masterデータ削除(ファイルが存在する場合のみ)
-    If Dir(plistPath_master) <> "" Then
-        Kill plistPath_master
-    End If
-    
-    '初回PLIST-持出データ削除(ファイルが存在する場合のみ)
-    plistPath_target = Replace(ThisWorkbook.Sheets("wk_Eno").Cells(1, 7), "&img.plist", ".plist")
-    If Dir(plistPath_target) <> "" Then
-        Kill plistPath_target
-    End If
-    
+       
     '持込データ解凍フォルダ削除(フォルダが存在する場合のみ)
-    folderPath_target = Replace(ThisWorkbook.Sheets("wk_Eno").Cells(1, 7), "&img.plist", "")
+    folderPath_target = Replace(ThisWorkbook.Sheets("wk_Eno").Cells(1, 7), ".plist", "")
     folderPath_master = ThisWorkbook.Path & "\Master\SampleList"
     
     '持込データ名がMasterデータ名と異なる場合のみ処理する
@@ -878,22 +808,22 @@ Sub applyCarryInData()
 '    End If
 
     '持込データ削除(ファイルが存在する場合のみ)
-    imgPlistPath_target = ThisWorkbook.Sheets("wk_Eno").Cells(1, 7)
-    zipPath_target = Replace(ThisWorkbook.Sheets("wk_Eno").Cells(1, 7), "&img.plist", ".zip")
+    plistPath_target = ThisWorkbook.Sheets("wk_Eno").Cells(1, 7)
+    zipPath_target = Replace(ThisWorkbook.Sheets("wk_Eno").Cells(1, 7), ".plist", ".zip")
     
     '持込データ名がMasterデータ名と異なる場合のみ処理する
-    If imgPlistPath_target <> imgPlistPath_master Then
+    If plistPath_target <> plistPath_master Then
     
         '確認メッセージ表示
-        res = MsgBox("持込データを削除しますか？" & Chr(10) & imgPlistPath_target & Chr(10) & zipPath_target, vbYesNo)
+        res = MsgBox("持込データを削除しますか？" & Chr(10) & plistPath_target & Chr(10) & zipPath_target, vbYesNo)
         
         '「Yes」の場合
         If res = vbYes Then
-            If Dir(imgPlistPath_target) <> "" Then
-                Kill imgPlistPath_target    '&img.plist
+            If Dir(plistPath_target) <> "" Then
+                Kill plistPath_target    '.plist
             End If
             If Dir(zipPath_target) <> "" Then
-                Kill zipPath_target         'zip
+                Kill zipPath_target      'zip
             End If
         End If
     End If
