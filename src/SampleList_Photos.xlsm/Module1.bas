@@ -59,7 +59,7 @@ Sub createMasterData()
     '機器Noを「SampleList」シートに書き出し
     eqNoClm = 7
     toClm = 13
-    wtRow = 2
+    wtRow = 3
     With ThisWorkbook.Sheets("SampleList")
     
         '書き出しエリアクリア
@@ -120,6 +120,9 @@ Sub createMasterData()
             
             '機器Noの接頭語の切り替わり位置をマーキングする
             .Cells(wtRow, eqNoClm - 1) = strPre
+            With .Cells(wtRow, eqNoClm - 1)
+                .VerticalAlignment = xlCenter
+            End With
             
             '機器Noの開始番号から終了番号まで処理を繰り返す
             For j = CInt(fromNum) To CInt(toNum)
@@ -255,14 +258,14 @@ Sub createPlist(eqNoClm)
                     Set node(6) = node(5).appendChild(xmlDoc.createNode(NODE_ELEMENT, "key", ""))
                     node(6).Text = "subCategory"
                     Set node(6) = node(5).appendChild(xmlDoc.createNode(NODE_ELEMENT, "string", ""))
-                    node(6).Text = .Cells(j, eqNoClm)   'サブカテゴリ名
+                    node(6).Text = .Cells(j, eqNoClm) & ":=-,-,-"   'サブカテゴリ名
                 Next j
             
                 'mainCategory関連情報タグ出力2
                 Set node(4) = node(3).appendChild(xmlDoc.createNode(NODE_ELEMENT, "key", ""))
                 node(4).Text = "mainCategory"
                 Set node(4) = node(3).appendChild(xmlDoc.createNode(NODE_ELEMENT, "string", ""))
-                node(4).Text = mainCategoryName 'メインカテゴリ名
+                node(4).Text = mainCategoryName & ":=,," 'メインカテゴリ名
                 Set node(4) = node(3).appendChild(xmlDoc.createNode(NODE_ELEMENT, "key", ""))
                 node(4).Text = "subFolderMode"
                 Set node(4) = node(3).appendChild(xmlDoc.createNode(NODE_ELEMENT, "integer", ""))

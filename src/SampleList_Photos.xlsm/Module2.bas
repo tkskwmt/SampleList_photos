@@ -425,6 +425,7 @@ Sub comparePlist()
     Dim matchRow
     Dim fromRow1, toRow1, fromRow2, toRow2
     Dim cntRow1, cntRow2
+    Dim array1, array2 As Variant
     
     '初期処理
     startRow = 20
@@ -446,9 +447,18 @@ Sub comparePlist()
         
         '開始行番号から最終行番号(=Masterか持込データのどちらか行数が多い方の最終行番号)まで処理を繰り返す
         For i = startRow To maxRow
-        
-            key1 = .Cells(i, 3) 'Masterデータキー情報
-            key2 = .Cells(i, 7) '持込データキー情報
+            If .Cells(i, 3) = "" Then
+                key1 = ""
+            Else
+                array1 = Split(Replace(.Cells(i, 3), ":=", "<"), "<")
+                key1 = array1(0)    'Masterデータキー情報
+            End If
+            If .Cells(i, 7) = "" Then
+                key2 = ""
+            Else
+                array2 = Split(Replace(.Cells(i, 7), ":=", "<"), "<")
+                key2 = array2(0)    '持込データキー情報
+            End If
             
             '***************
             'マッチング処理
@@ -459,6 +469,10 @@ Sub comparePlist()
             
                 .Cells(i, 3).Font.Color = RGB(0, 0, 255)    '青色
                 .Cells(i, 7).Font.Color = RGB(0, 0, 255)    '青色
+                'メインカテゴリまたはサブカテゴリのチェック情報データが異なる場合処理する
+                If .Cells(i, 3) <> .Cells(i, 7) Then
+                    .Cells(i, 8) = "$"
+                End If
                 
             'キー情報がブレークしたら処理する
             Else
@@ -555,7 +569,38 @@ Sub mergePlist()
                     
                     '持出データ情報によるMasterデータ情報の上書きは行わず、確認メッセージを表示するのみとする
                     MsgBox ("SubCategory: " & .Cells(i, 7) & " ⇒マスターのサブカテゴリ名／写真を変更する場合は手作業でマスター側を上書きしてください")
+                
+                'メインカテゴリまたはサブカテゴリのチェック情報データ(":="より後の文字データ)がアンマッチの場合
+                 Case "$"
+                    'Masterデータ側に持込データ情報をコピーする
+                    .Cells(i, 3) = .Cells(i, 7)
+                    .Cells(i, 3).Font.Color = RGB(255, 0, 0)    '赤色(更新後)
+                
+                 Case "$*"
+                    'Masterデータ側に持込データ情報をコピーする
+                    .Cells(i, 3) = .Cells(i, 7)
+                    .Cells(i, 3).Font.Color = RGB(255, 0, 0)    '赤色(更新後)
+                
+                    'Masterデータ側の「写真情報」がない(空欄)場合のみ、Masterデータ側に持込データ情報(写真枚数＆写真名)をコピーする
+                    If .Cells(i + 2, 3) = "" Then
+                        .Cells(i + 1, 3) = .Cells(i + 1, 7) '写真枚数
+                        .Cells(i + 2, 3) = .Cells(i + 2, 7) '写真名(複数可)
+                        .Cells(i + 1, 3).Font.Color = RGB(255, 0, 0)    '赤色(更新後)
+                        .Cells(i + 2, 3).Font.Color = RGB(255, 0, 0)    '赤色(更新後)
+                        
+                    'Masterデータ側の「写真情報」がある場合、持出データ情報による上書きは行わず、確認メッセージを表示するのみとする
+                    Else
                     
+                        '持込データ側の「写真情報」の有無により、対応する確認メッセージを表示する。
+                        If .Cells(i + 2, 7) = "" Then
+                            MsgBox ("SubCategory: " & .Cells(i, 7) & " ⇒マスターの写真を削除する場合は手作業でマスター側を上書きしてください")
+                        Else
+                            MsgBox ("SubCategory: " & .Cells(i, 7) & " ⇒マスターの写真を変更する場合は手作業でマスター側を上書きしてください")
+                        End If
+                        
+                    End If
+                
+                
                 End Select
             Next i
                        
@@ -956,15 +1001,16 @@ Sub applySampleList()
     '**********************************
     
     Dim shp, myShape
-    Dim startRow, maxRow, cntRow, cntClm
+    Dim startRow, maxRow, cntRow, cntClm, cntClm2
     Dim cnt_main, cnt_sub
     Dim cnt_sub2(1000) As Variant
     Dim arr_main(1000) As Variant
     Dim arr1(1000, 1000) As Variant
     Dim arr2(1000, 1000) As Variant
     Dim arr3(1000, 1000) As Variant
-    Dim arr4 As Variant
-    Dim i, j, k, m
+    Dim arr14(1000, 1000) As Variant
+    Dim arr4, arr5, arr6, arr7, arr8 As Variant
+    Dim i, j, k, m, p, r
     Dim targetImage, thumbnailImage, imageName, img_size
     Dim cntColumn
     
@@ -993,7 +1039,11 @@ Sub applySampleList()
             '「mainCategory」情報取得
             If .Cells(i, 2) = "mainCategory" Then
                 cnt_main = cnt_main + 1             'mainCategory要素数カウントアップ
-                arr_main(cnt_main) = .Cells(i, 3)   'mainCategory情報配列セット
+                arr5 = Split(Replace(.Cells(i, 3), ":=", "<"), "<")
+                If cnt_main = 1 Then
+                    arr8 = Split(arr5(1), ",")
+                End If
+                arr_main(cnt_main) = arr5(0)        'mainCategory情報配列セット
                 cnt_sub = 0
             End If
             
@@ -1001,9 +1051,11 @@ Sub applySampleList()
             If .Cells(i, 2) = "subCategory" Then
                 cnt_sub = cnt_sub + 1                       'subCategory要素数カウントアップ
                 cnt_sub2(cnt_main) = cnt_sub                'mainCategory要素毎のsubCategory要素数カウントアップ
-                arr1(cnt_main, cnt_sub) = .Cells(i, 3)      'subCategory情報配列セット
+                arr6 = Split(Replace(.Cells(i, 3), ":=", "<"), "<")
+                arr1(cnt_main, cnt_sub) = arr6(0)           'subCategory情報配列セット
                 arr2(cnt_main, cnt_sub) = .Cells(i + 1, 3)  '格納画像ファイル数情報配列セット
-                arr3(cnt_main, cnt_sub) = .Cells(i + 2, 3)   '画像ファイル情報群配列セット
+                arr3(cnt_main, cnt_sub) = .Cells(i + 2, 3)  '画像ファイル情報群配列セット
+                arr14(cnt_main, cnt_sub) = arr6(1)          'チェック情報群配列セット
             End If
             
         Next i
@@ -1014,15 +1066,32 @@ Sub applySampleList()
     With ThisWorkbook.Sheets("SampleList")
     
         '初期値
-        cntRow = 2
+        cntRow = 3
         
         '出力エリアクリア
         .Range(.Cells(2, 1), .Cells(1048576, 5)).Clear
-        .Columns("N:XFD").Clear
+        '.Columns("N:XFD").Clear
         
+        'チェック項目名を書き出し
+        .Range(.Columns(14), .Columns(16)).Insert Shift:=xlToRight, CopyOrigin:=xlFormatFromLeftOrAbove
+        For r = 0 To 2
+            .Cells(1, 14 + r) = arr8(r)
+            .Cells(2, 14 + r) = Replace(Replace(Replace(Mid(ThisWorkbook.Sheets("wk_Eno").Cells(1, 7), InStrRev(ThisWorkbook.Sheets("wk_Eno").Cells(1, 7), "\") + 1), ".plist", ""), "SampleList_", ""), "_", Chr(10))
+        Next r
+        With .Range(.Cells(2, 14), .Cells(2, 16))
+            .HorizontalAlignment = xlGeneral
+            .VerticalAlignment = xlCenter
+            .WrapText = True
+            .Orientation = 0
+            .AddIndent = False
+            .IndentLevel = 0
+            .ShrinkToFit = False
+            .ReadingOrder = xlContext
+            .MergeCells = False
+        End With
         'mainCategory要素数分処理を繰り返す
         For m = 1 To cnt_main
-            'mainCategory１番目要素のsubCategory要素数分処理を繰り返す
+            'subCategory要素数分処理を繰り返す
             For i = 1 To cnt_sub2(m)
             
                 '先頭subCategoryが空データの場合、処理を終了する
@@ -1039,7 +1108,12 @@ Sub applySampleList()
                 
                 '画像ファイル情報群を配列に格納
                 arr4 = Split(arr3(m, i), ",")
+                
+                'チェック情報群を配列に格納
+                arr7 = Split(arr14(m, i), ",")
+                                
                 cntClm = 2
+                cntClm2 = 14
                 
                 '画像ファイル数分処理する
                 For j = 0 To UBound(arr4, 1)
@@ -1106,6 +1180,16 @@ Sub applySampleList()
                     
                     cntClm = cntClm + 1 '書き出し列番号カウントアップ
                 Next j
+                'チェック情報数分処理する
+                For p = 0 To UBound(arr7, 1)
+                    .Cells(cntRow, cntClm2) = Replace(Replace(arr7(p), "-", "-" & Chr(10)), "*", "*" & Chr(10)) 'チェック情報⇒シート14列目から順次右に書き出し
+                    'セル書式設定
+                    With .Cells(cntRow, cntClm2)
+                        .HorizontalAlignment = xlCenter
+                        .VerticalAlignment = xlCenter
+                    End With
+                    cntClm2 = cntClm2 + 1 '書き出し列番号カウントアップ
+                Next p
                 cntRow = cntRow + 1 '書き出し行番号カウントアップ
             Next i
         Next m
