@@ -528,23 +528,23 @@ Sub createCarryOutData()
         Exit Sub
     End If
     
-    '持出試験項目入力データ取得
-    With ThisWorkbook.Sheets("SampleList")
-        maxClm = .Cells(1, 16384).End(xlToLeft).Column 'チェックボックス情報エリアの最終列番号取得
-        
-        'チェックボックス情報エリアの各列ごとに処理を繰り返す
-        If maxClm >= 14 Then
-            For i = 14 To maxClm
-                strReqNo = strReqNo & "," & .Cells(1, i)    '複数試験項目名をカンマでつなげていく
-            Next i
-            strReqNo = Replace(Mid(strReqNo, 2), " ", "")
-        End If
-    End With
-    
-    'マスターにチェックボックス情報(試験項目名)が存在する場合のみ、入力ボックスを表示する
-    If strReqNo <> "" Then
-        strReqNo = InputBox("持ち出したい試験項目(過去実施分)があれば指定してください。" & Chr(10) & Chr(10) & "※スマホ操作が重くなる為、" & Chr(10) & "「指定なし(空欄)」または「必要最小限の指定」にする事。", , strReqNo)
-    End If
+'    '持出試験項目入力データ取得
+'    With ThisWorkbook.Sheets("SampleList")
+'        maxClm = .Cells(1, 16384).End(xlToLeft).Column 'チェックボックス情報エリアの最終列番号取得
+'
+'        'チェックボックス情報エリアの各列ごとに処理を繰り返す
+'        If maxClm >= 14 Then
+'            For i = 14 To maxClm
+'                strReqNo = strReqNo & "," & .Cells(1, i)    '複数試験項目名をカンマでつなげていく
+'            Next i
+'            strReqNo = Replace(Mid(strReqNo, 2), " ", "")
+'        End If
+'    End With
+'
+'    'マスターにチェックボックス情報(試験項目名)が存在する場合のみ、入力ボックスを表示する
+'    If strReqNo <> "" Then
+'        strReqNo = InputBox("持ち出したい試験項目(過去実施分)があれば指定してください。" & Chr(10) & Chr(10) & "※スマホ操作が重くなる為、" & Chr(10) & "「指定なし(空欄)」または「必要最小限の指定」にする事。", , strReqNo)
+'    End If
     
     '持出データ名：SampleList_「日付」_「設備名」.plist
     fileName = "SampleList_" & strDate & "_" & strTestRoomNo
