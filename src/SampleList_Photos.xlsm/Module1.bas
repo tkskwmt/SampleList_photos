@@ -467,7 +467,7 @@ Sub editSampleID()
     End If
     
     '処理終了
-    MsgBox ("処理終了")
+    MsgBox ("サンプル業務番号反映完了")
 End Sub
 Sub createCarryOutData()
     '**********************************
@@ -511,7 +511,7 @@ Sub createCarryOutData()
     'サンプル業務番号入力(初回のみ)
     With ThisWorkbook.Sheets("SampleList")
         If .Cells(1, 1) = "" Then
-            .Cells(1, 1) = InputBox("サンプル業務番号？", , "EMCxx-xxxx")
+            Call editSampleID
         End If
         strSID = .Cells(1, 1)
     End With
