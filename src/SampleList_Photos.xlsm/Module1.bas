@@ -357,7 +357,7 @@ Sub createJPG(fName)
     
     '操作説明エリアコピー
     With ThisWorkbook.Sheets("Menu")
-        Set rg = .Range(.Cells(10, 14), .Cells(20, 19))
+        Set rg = .Range(.Cells(50, 1), .Cells(100, 26))
     End With
     rg.CopyPicture
     
