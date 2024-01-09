@@ -73,31 +73,49 @@ Sub createMasterData()
                 MsgBox ("処理を中止します。" & Chr(10) & "機器Noの開始番号と終了番号の間に「-」を追加してください。" & Chr(10) & "入力値：" & arrEqNo(i))
                 GoTo abort
             End If
-
-            '入力値(開始番号)を左から見て最初に「0」が見つかった位置の手前までを機器Noの接頭語(「E」等)と判別する
-            strFromEqNo = Left(arrEqNo(i), InStr(arrEqNo(i), "-") - 1)
-            posNum = InStr(strFromEqNo, "0")
             
-            '入力値に「0」が見つからない場合、処理中止
-            If posNum = 0 Then
-                MsgBox ("処理を中止します。" & Chr(10) & "機器Noの開始番号は０埋めで指定してください。(例：E01, E001, H01, 等)" & Chr(10) & "入力値：" & arrEqNo(i))
-                GoTo abort
-            End If
-            
-            '機器Noの接頭語を取得する
-            strPre = Left(arrEqNo(i), posNum - 1)   '機器Noの接頭語
-            
-            '接頭語チェック
-            If strPre = "" Then
-                MsgBox ("処理を中止します。(機器Noの接頭語が判別できません)" & Chr(10) & "入力値：" & arrEqNo(i))
-                GoTo abort
-            End If
-            For k = 1 To Len(strPre)
-                If IsNumeric(Mid(strPre, k, 1)) Then
-                    MsgBox ("処理を中止します。(機器Noの接頭語に数字は入れられません)" & Chr(10) & "接頭語：" & strPre & Chr(10) & "入力値：" & arrEqNo(i))
+            '【特殊考慮】機器Noの接頭語に数字を入れたい場合は、数字入り接頭語を大カッコ[]でくくる
+            If InStr(arrEqNo(i), "]") > 0 Then
+                posNum = InStr(arrEqNo(i), "]") + 1
+                If Mid(arrEqNo(i), posNum, 1) <> "0" Then
+                    MsgBox ("処理を中止します。" & Chr(10) & "機器Noの開始番号は０埋めで指定してください。(例：E01, E001, H01, 等)" & Chr(10) & "入力値：" & arrEqNo(i))
                     GoTo abort
                 End If
-            Next k
+                
+                '機器Noの接頭語を取得する
+                strPre = Replace(Replace(Left(arrEqNo(i), posNum - 1), "[", ""), "]", "") '機器Noの接頭語
+                
+                '接頭語チェック
+                If strPre = "" Then
+                    MsgBox ("処理を中止します。(機器Noの接頭語が判別できません)" & Chr(10) & "入力値：" & arrEqNo(i))
+                    GoTo abort
+                End If
+            Else
+                '入力値(開始番号)を左から見て最初に「0」が見つかった位置の手前までを機器Noの接頭語(「E」等)と判別する
+                strFromEqNo = Left(arrEqNo(i), InStr(arrEqNo(i), "-") - 1)
+                posNum = InStr(strFromEqNo, "0")
+                
+                '入力値に「0」が見つからない場合、処理中止
+                If posNum = 0 Then
+                    MsgBox ("処理を中止します。" & Chr(10) & "機器Noの開始番号は０埋めで指定してください。(例：E01, E001, H01, 等)" & Chr(10) & "入力値：" & arrEqNo(i))
+                    GoTo abort
+                End If
+                
+                '機器Noの接頭語を取得する
+                strPre = Left(arrEqNo(i), posNum - 1)   '機器Noの接頭語
+            
+                '接頭語チェック
+                If strPre = "" Then
+                    MsgBox ("処理を中止します。(機器Noの接頭語が判別できません)" & Chr(10) & "入力値：" & arrEqNo(i))
+                    GoTo abort
+                End If
+                For k = 1 To Len(strPre)
+                    If IsNumeric(Mid(strPre, k, 1)) Then
+                        MsgBox ("処理を中止します。(機器Noの接頭語に数字は入れられません)" & Chr(10) & "接頭語：" & strPre & Chr(10) & "入力値：" & arrEqNo(i))
+                        GoTo abort
+                    End If
+                Next k
+            End If
             
             '機器Noの開始番号と終了番号を取得する
             strNum = Mid(arrEqNo(i), posNum)
