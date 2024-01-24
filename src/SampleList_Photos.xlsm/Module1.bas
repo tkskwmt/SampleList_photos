@@ -565,7 +565,7 @@ Sub createCarryOutData()
 '    End If
     
     '持出データ名：SampleList_「日付」_「設備名」.plist
-    fileName = "SampleList_" & strDate & "_" & strTestRoomNo
+    fileName = ThisWorkbook.Sheets("Menu").Cells(1, 3) & "_" & strDate & "_" & strTestRoomNo
     
     '【PLIST名】Masterデータ: SampleList.plist
     plistPath_target = ThisWorkbook.Path & "\" & fileName & ".plist"
