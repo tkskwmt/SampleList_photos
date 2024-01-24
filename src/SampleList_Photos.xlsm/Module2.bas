@@ -1013,6 +1013,7 @@ Sub applySampleList()
     Dim i, j, k, m, p, r
     Dim targetImage, thumbnailImage, imageName, img_size
     Dim cntColumn
+    Dim cnt_del
     
     '*************************
     '機器写真情報書き出し処理
@@ -1193,6 +1194,15 @@ Sub applySampleList()
                 cntRow = cntRow + 1 '書き出し行番号カウントアップ
             Next i
         Next m
+        
+        'チェックデータのうち、チェックタイトルが空欄の列は削除する(=有効なチェックデータなしと判断する)
+        cnt_del = 0
+        For r = 0 To 2
+            If arr8(r) = "" Then
+                .Columns(14 + r - cnt_del).Delete Shift:=xlToLeft
+                cnt_del = cnt_del + 1
+            End If
+        Next r
     End With
     
     '終了処理
