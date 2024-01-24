@@ -949,7 +949,7 @@ Sub applyPlist()
                 Set node(6) = node(5).appendChild(xmlDoc.createNode(NODE_ELEMENT, "key", ""))
                 node(6).Text = "subCategory"
                 Set node(6) = node(5).appendChild(xmlDoc.createNode(NODE_ELEMENT, "string", ""))
-                node(6).Text = arr1(i, j)   'サブカテゴリ名
+                node(6).Text = Left(arr1(i, j), InStr(arr1(i, j), ":=") - 1) & ":=-,-,-" 'サブカテゴリ名
                 
             Next j
             
@@ -957,7 +957,7 @@ Sub applyPlist()
             Set node(4) = node(3).appendChild(xmlDoc.createNode(NODE_ELEMENT, "key", ""))
             node(4).Text = "mainCategory"
             Set node(4) = node(3).appendChild(xmlDoc.createNode(NODE_ELEMENT, "string", ""))
-            node(4).Text = arrMain(i)   'メインカテゴリ名
+            node(4).Text = Left(arrMain(i), InStr(arrMain(i), ":=") - 1) & ":=,," 'メインカテゴリ名
             Set node(4) = node(3).appendChild(xmlDoc.createNode(NODE_ELEMENT, "key", ""))
             node(4).Text = "subFolderMode"
             Set node(4) = node(3).appendChild(xmlDoc.createNode(NODE_ELEMENT, "integer", ""))
