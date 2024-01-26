@@ -442,7 +442,7 @@ Sub editSampleID()
     '一時ファイルの所定ワードを修正する
     Set reg = CreateObject("VBScript.RegExp")
     With reg
-        .Pattern = "EMC[0-9][0-9]-[0-9][0-9][0-9][0-9]"
+        .Pattern = "EMC([0-9][0-9]|xx)-([0-9][0-9][0-9][0-9]|xxxx)"
         .IgnoreCase = True
         .Global = True
     End With
