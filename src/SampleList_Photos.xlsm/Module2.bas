@@ -1043,6 +1043,10 @@ Sub applySampleList()
                 arr5 = Split(Replace(.Cells(i, 3), ":=", "<"), "<")
                 If cnt_main = 1 Then
                     arr8 = Split(arr5(1), ",")
+                Else
+                    If arr8(0) = "" And arr8(1) = "" And arr8(2) = "" Then
+                        arr8 = Split(arr5(1), ",")
+                    End If
                 End If
                 arr_main(cnt_main) = arr5(0)        'mainCategory情報配列セット
                 cnt_sub = 0
