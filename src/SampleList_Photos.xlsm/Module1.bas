@@ -748,6 +748,7 @@ Sub applyCarryInData()
     Dim wb As Workbook
     Dim oldFileName, newFileName
     Dim oldFilePath, newFilePath
+    Dim carryInFileName
     
     plistPath_master = ThisWorkbook.Path & "\Master\SampleList.plist"         '初回PLIST-Masterデータ(.plist)
     
@@ -779,6 +780,15 @@ Sub applyCarryInData()
     '【追加】PLIST-持込データ-サンプル業務番号チェック
     If InStr(ThisWorkbook.Sheets("wk_Eno").Cells(startRow, 7), ThisWorkbook.Sheets("SampleList").Cells(1, 1)) = 0 Then
         MsgBox ("持込データのサンプル業務番号が一致しません。処理を中止します。")
+        Exit Sub
+    End If
+    
+    'PLIST-持込データ-管理種類チェック
+    carryInFileName = Mid(ThisWorkbook.Sheets("wk_Eno").Cells(1, startColumn + 2), InStrRev(ThisWorkbook.Sheets("wk_Eno").Cells(1, startColumn + 2), "\") + 1)
+    If InStr(ThisWorkbook.Sheets("wk_Eno").Cells(1, startColumn + 2), ThisWorkbook.Sheets("Menu").Cells(1, 3)) = 0 Then
+        MsgBox ("持込データの管理種類(InOutMgr/EqpMgr)が一致しません。処理を中止します。" & Chr(10) & _
+        "持込データ: " & Left(carryInFileName, InStr(carryInFileName, "Mgr_") + 2) & Chr(10) & _
+        "Master: " & ThisWorkbook.Sheets("Menu").Cells(1, 3))
         Exit Sub
     End If
     
