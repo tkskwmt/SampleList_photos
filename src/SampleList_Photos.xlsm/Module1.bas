@@ -35,7 +35,7 @@ Sub createMasterData()
     'Masterデータフォルダがない場合は新規作成する＆Master(Excel)内の業務番号をクリアする
     If Dir(masterDir, vbDirectory) = "" Then
         MkDir masterDir
-        ThisWorkbook.Sheets("SampleList").Cells(1, 1).Clear
+        ThisWorkbook.Sheets("SampleList").Cells(1, 1).ClearContents
         
     'Masterデータフォルダが既に存在する場合は、確認メッセージを出して処理を中止する。(誤って初期化するのを防ぐため)
     Else
@@ -44,7 +44,7 @@ Sub createMasterData()
     End If
     
     '機器No入力
-    strEqNo = InputBox("機器No？(例：S01-10,E01-99,H01-99)", , "S01-10,E01-99,H01-99")
+    strEqNo = InputBox("機器No？(例：S01-10,E01-99,H01-99)", , "E01-99")
     
     '半角/全角スペースを削除
     strEqNo = Replace(strEqNo, " ", "")
@@ -295,24 +295,37 @@ Sub createPlist(eqNoClm)
     
     xmlDoc.Save (tempFile)  '一時ファイル保存
     
-    Open tempFile For Input As #1   '入力ファイル(=一時ファイル)
-    Open fileName For Output As #2  '出力ファイル(=Masterデータ)
+    Dim inputSt As New ADODB.stream
+    Dim outputSt As New ADODB.stream
+    Dim outputSt2 As New ADODB.stream
     
-    '一時ファイルの所定ワードを修正する
-    str = "<!DOCTYPE plist PUBLIC ""-//Apple//DTD PLIST 1.0//EN"" ""http://www.apple.com/DTDs/PropertyList-1.0.dtd"">"
-    find = Array("<?DOCTYPE?>", "<plist>", "><")
-    rep = Array(str, "<plist version=""1.0"">", ">" & vbLf & "<")
-    
-    '一時ファイルからMasterデータに書き出し
-    Do Until EOF(1)
-        Line Input #1, fileData
-        
+    With inputSt
+        .Charset = "UTF-8"
+        .Open
+        .LoadFromFile (tempFile)
+        fileData = .ReadText
+        str = "<!DOCTYPE plist PUBLIC ""-//Apple//DTD PLIST 1.0//EN"" ""http://www.apple.com/DTDs/PropertyList-1.0.dtd"">"
+        find = Array("<?DOCTYPE?>", "<plist>", "><")
+        rep = Array(str, "<plist version=""1.0"">", ">" & vbLf & "<")
         For i = 0 To UBound(find)
             fileData = Replace(fileData, find(i), rep(i))
         Next i
-        Print #2, fileData
-    Loop
-    Close
+        .Close
+    End With
+    With outputSt
+        .Charset = "UTF-8"
+        .Open
+        .WriteText fileData
+        .Position = 3
+        With outputSt2
+            .Type = adTypeBinary
+            .Open
+            outputSt.CopyTo outputSt2
+            .SaveToFile (fileName), 2
+            .Close
+        End With
+        .Close
+    End With
     
     If Dir(tempFile) <> "" Then
         Kill tempFile   '一時ファイル削除
@@ -358,7 +371,6 @@ Sub createZip()
         'ZIP圧縮処理
         Call ZipFileOrFolder2(zipSrcFolder)
     End If
-
 
 End Sub
 Sub createJPG(fName)
@@ -413,7 +425,6 @@ Sub editSampleID()
     Dim oldFilePath
     Dim newFileName
     Dim newFilePath
-    Dim reg As Object
 
     'サンプル業務番号入力(初回のみ)
     With ThisWorkbook.Sheets("SampleList")
@@ -436,30 +447,43 @@ Sub editSampleID()
     tempFile = "c:\\temp\\temp.plist"   '一時ファイル
     FileCopy plistPath_master, tempFile
     
-    Open tempFile For Input As #1               '入力ファイル(=一時ファイル)
-    Open plistPath_master For Output As #2   '出力ファイル(=PLIST-Masterデータ)
+    Dim inputSt As New ADODB.stream
+    Dim outputSt As New ADODB.stream
+    Dim outputSt2 As New ADODB.stream
+    Dim reg As New RegExp
     
-    '一時ファイルの所定ワードを修正する
-    Set reg = CreateObject("VBScript.RegExp")
-    With reg
-        .Pattern = "EMC([0-9][0-9]|xx)-([0-9][0-9][0-9][0-9]|xxxx)"
-        .IgnoreCase = True
-        .Global = True
-    End With
-    find = Array("<string>@")
-    rep = Array("<string>" & strSID)
-    
-    '一時ファイルからMasterデータに書き出し
-    Do Until EOF(1)
-        Line Input #1, fileData
-        
+    With inputSt
+        .Charset = "UTF-8"
+        .Open
+        .LoadFromFile (tempFile)
+        fileData = .ReadText
+        find = Array("<string>@")
+        With reg
+            .Pattern = "<string>EMC..-....-"
+            .IgnoreCase = False
+            .Global = True
+        End With
+        rep = Array("<string>" & strSID)
         For i = 0 To UBound(find)
-            fileData = reg.Replace(fileData, strSID)
             fileData = Replace(fileData, find(i), rep(i))
         Next i
-        Print #2, fileData
-    Loop
-    Close
+        fileData = reg.Replace(fileData, "<string>" & strSID & "-")
+        .Close
+    End With
+    With outputSt
+        .Charset = "UTF-8"
+        .Open
+        .WriteText fileData
+        .Position = 3
+        With outputSt2
+            .Type = adTypeBinary
+            .Open
+            outputSt.CopyTo outputSt2
+            .SaveToFile (plistPath_master), 2
+            .Close
+        End With
+        .Close
+    End With
     
     If Dir(tempFile) <> "" Then
         Kill tempFile   '一時ファイル削除
@@ -546,24 +570,6 @@ Sub createCarryOutData()
         Exit Sub
     End If
     
-'    '持出試験項目入力データ取得
-'    With ThisWorkbook.Sheets("SampleList")
-'        maxClm = .Cells(1, 16384).End(xlToLeft).Column 'チェックボックス情報エリアの最終列番号取得
-'
-'        'チェックボックス情報エリアの各列ごとに処理を繰り返す
-'        If maxClm >= 14 Then
-'            For i = 14 To maxClm
-'                strReqNo = strReqNo & "," & .Cells(1, i)    '複数試験項目名をカンマでつなげていく
-'            Next i
-'            strReqNo = Replace(Mid(strReqNo, 2), " ", "")
-'        End If
-'    End With
-'
-'    'マスターにチェックボックス情報(試験項目名)が存在する場合のみ、入力ボックスを表示する
-'    If strReqNo <> "" Then
-'        strReqNo = InputBox("持ち出したい試験項目(過去実施分)があれば指定してください。" & Chr(10) & Chr(10) & "※スマホ操作が重くなる為、" & Chr(10) & "「指定なし(空欄)」または「必要最小限の指定」にする事。", , strReqNo)
-'    End If
-    
     '持出データ名：SampleList_「日付」_「設備名」.plist
     fileName = ThisWorkbook.Sheets("Menu").Cells(1, 3) & "_" & strDate & "_" & strTestRoomNo
     
@@ -584,23 +590,36 @@ Sub createCarryOutData()
     tempFile = "c:\\temp\\temp.plist"   '一時ファイル
     FileCopy plistPath_master, tempFile
     
-    Open tempFile For Input As #1               '入力ファイル(=一時ファイル)
-    Open plistPath_master For Output As #2   '出力ファイル(=PLIST-Masterデータ)
+    Dim inputSt As New ADODB.stream
+    Dim outputSt As New ADODB.stream
+    Dim outputSt2 As New ADODB.stream
     
-    '一時ファイルの所定ワードを修正する
-    find = Array("<string>SampleList</string>")
-    rep = Array("<string>" & strSID & "</string>")
-    
-    '一時ファイルからMasterデータに書き出し
-    Do Until EOF(1)
-        Line Input #1, fileData
-        
+    With inputSt
+        .Charset = "UTF-8"
+        .Open
+        .LoadFromFile (tempFile)
+        fileData = .ReadText
+        find = Array("<string>SampleList</string>")
+        rep = Array("<string>" & strSID & "</string>")
         For i = 0 To UBound(find)
             fileData = Replace(fileData, find(i), rep(i))
         Next i
-        Print #2, fileData
-    Loop
-    Close
+        .Close
+    End With
+    With outputSt
+        .Charset = "UTF-8"
+        .Open
+        .WriteText fileData
+        .Position = 3
+        With outputSt2
+            .Type = adTypeBinary
+            .Open
+            outputSt.CopyTo outputSt2
+            .SaveToFile (plistPath_master), 2
+            .Close
+        End With
+        .Close
+    End With
     
     If Dir(tempFile) <> "" Then
         Kill tempFile   '一時ファイル削除
@@ -724,7 +743,6 @@ Sub createCarryOutData()
         ThisWorkbook.Save
     End If
 
-    
     '終了処理
     MsgBox ("持出データ出力完了")
 End Sub

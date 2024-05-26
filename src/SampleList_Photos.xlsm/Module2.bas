@@ -209,23 +209,55 @@ Sub loadPlist(startRow, startColumn)
             
                 Select Case myNode2
                 
-                Case "mainCategory", "subFolderMode", "subCategory", "countStoredImages", "imageFile"
+                Case "mainCategory", "subFolderMode", "subCategory", "countStoredImages", "imageFile", "imageInfo"
                     
                     '1列目書き出し
                     Select Case myNode2
                     Case "mainCategory"
+                        '「imageInfo」情報がブランク(空欄)の場合、状況に応じて出力行をインクリメントする(連続imageInfo行の場合は同情報をカンマでつなげて先頭imageInfo行に書き出す)
+                        If .Cells(i, startColumn + 1) = "imageInfo" Then
+                            If .Cells(i - 1, startColumn + 1) = "imageInfo" Then
+                                .Cells(i - 1, startColumn + 2) = .Cells(i - 1, startColumn + 2) & ";:." & .Cells(i, startColumn + 2)
+                                .Cells(1, startColumn) = ""
+                                .Cells(1, startColumn + 1) = ""
+                            Else
+                                i = i + 1
+                            End If
+                        End If
                         .Cells(i, startColumn) = mainCategoryCount * 10000
                         mainCategoryCount = mainCategoryCount + 1
                         subCategoryCount = 0
                     Case "subFolderMode"
                         .Cells(i, startColumn) = (mainCategoryCount - 1) * 10000 + 0.1
                     Case "subCategory"
+                        '「imageInfo」情報がブランク(空欄)の場合、状況に応じて出力行をインクリメントする(連続imageInfo行の場合は同情報をカンマでつなげて先頭imageInfo行に書き出す)
+                        If .Cells(i, startColumn + 1) = "imageInfo" Then
+                            If .Cells(i - 1, startColumn + 1) = "imageInfo" Then
+                                .Cells(i - 1, startColumn + 2) = .Cells(i - 1, startColumn + 2) & ";:." & .Cells(i, startColumn + 2)
+                                .Cells(1, startColumn) = ""
+                                .Cells(1, startColumn + 1) = ""
+                            Else
+                                i = i + 1
+                            End If
+                        End If
                         .Cells(i, startColumn) = 1 + mainCategoryCount * 10000 + subCategoryCount * 10
                         subCategoryCount = subCategoryCount + 1
                     Case "countStoredImages"
                         .Cells(i, startColumn) = 2 + mainCategoryCount * 10000 + subCategoryCount * 10
                     Case "imageFile"
+                        '「imageInfo」情報がブランク(空欄)の場合、状況に応じて出力行をインクリメントする(連続imageInfo行の場合は同情報をカンマでつなげて先頭imageInfo行に書き出す)
+                        If .Cells(i, startColumn + 1) = "imageInfo" Then
+                            If .Cells(i - 1, startColumn + 1) = "imageInfo" Then
+                                .Cells(i - 1, startColumn + 2) = .Cells(i - 1, startColumn + 2) & ";:." & .Cells(i, startColumn + 2)
+                                .Cells(1, startColumn) = ""
+                                .Cells(1, startColumn + 1) = ""
+                            Else
+                                i = i + 1
+                            End If
+                        End If
                         .Cells(i, startColumn) = 3 + mainCategoryCount * 10000 + subCategoryCount * 10
+                    Case "imageInfo"
+                        .Cells(i, startColumn) = 4 + mainCategoryCount * 10000 + subCategoryCount * 10
                     End Select
                     
                     '2列目書き出し
@@ -239,13 +271,31 @@ Sub loadPlist(startRow, startColumn)
                     '3列目書き出し
                     '「imageFile」タグ情報の場合のみ、写真が複数の場合は写真名をカンマでつなげて所定列に書き出す
                     If .Cells(i, startColumn + 1) = "imageFile" Then
-                        If .Cells(i - 1, startColumn + 1) = "imageFile" Then
-                            .Cells(i - 1, startColumn + 2) = .Cells(i - 1, startColumn + 2) & "," & myNode2
+                        If .Cells(i - 2, startColumn + 1) = "imageFile" Then
+                            .Cells(i - 2, startColumn + 2) = .Cells(i - 2, startColumn + 2) & "," & myNode2
                             .Cells(1, startColumn) = ""
                             .Cells(1, startColumn + 1) = ""
                         Else
                             .Cells(i, startColumn + 2) = myNode2
                             i = i + 1
+                        End If
+                        
+                    '「imageInfo」タグ情報の場合のみ、テキスト情報が複数の場合はテキスト情報をカンマでつなげて所定列に書き出す
+                    ElseIf .Cells(i, startColumn + 1) = "imageInfo" Then
+                        If .Cells(i - 1, startColumn + 1) = "imageInfo" Then
+                            .Cells(i - 1, startColumn + 2) = .Cells(i - 1, startColumn + 2) & ";:." & myNode2
+                            .Cells(1, startColumn) = ""
+                            .Cells(1, startColumn + 1) = ""
+                        Else
+                            .Cells(i, startColumn + 2) = myNode2
+                            i = i + 1
+                        End If
+                        
+                    ElseIf .Cells(i, startColumn + 1) = "" Then
+                    
+                        '「imageInfo」情報内に改行コードがあると情報が複数行にまたがるケース有
+                        If .Cells(i - 1, startColumn + 1) = "imageInfo" Then
+                            .Cells(i - 1, startColumn + 2) = .Cells(i - 1, startColumn + 2) & " " & myNode2
                         End If
                     
                     '「mainCategory」「subCategory」「countStoredImages」タグ情報の場合、所定列にデータ値を書き出す
@@ -294,6 +344,11 @@ Sub loadPlist(startRow, startColumn)
             '写真枚数を表す「countStoredImages」データが0(=写真情報が空)の場合のみ処理する
             If .Cells(i, startColumn + 1) = "countStoredImages" And .Cells(i, startColumn + 2) = 0 Then
             
+                '1行挿入
+                .Range(.Cells(i + 1, startColumn), .Cells(i + 1, startColumn + 3)).Insert Shift:=xlDown, CopyOrigin:=xlFormatFromLeftOrAbove
+                .Cells(i + 1, startColumn) = .Cells(i, startColumn) + 2 '1列目情報セット
+                .Cells(i + 1, startColumn + 1) = "imageInfo"            '2列目情報セット(3,4列目は空欄)
+                
                 '1行挿入
                 .Range(.Cells(i + 1, startColumn), .Cells(i + 1, startColumn + 3)).Insert Shift:=xlDown, CopyOrigin:=xlFormatFromLeftOrAbove
                 .Cells(i + 1, startColumn) = .Cells(i, startColumn) + 1 '1列目情報セット
@@ -490,13 +545,22 @@ Sub comparePlist()
                     .Cells(i, 7).Font.Color = RGB(255, 0, 0)        '赤色(持込データ側)
                     .Cells(i - 2, 8) = .Cells(i - 2, 8) & "*"
                     
+                '両データ比較行の2列目文字が同じ「imageInfo」(=写真テキスト情報)であった場合
+                ElseIf .Cells(i, 2) = "imageInfo" And .Cells(i, 6) = "imageInfo" Then
+                
+                    '写真テキスト情報に変更があった場合、該当する「imageInfo」行ので文字色を変更する
+                    '写真テキスト情報に変更があった行の4列目(持ち込みデータ側のみ)に識別マーカ「$」を追加する
+                    .Cells(i, 3).Font.Color = RGB(0, 255, 0)        '緑色(Masterデータ側)
+                    .Cells(i, 7).Font.Color = RGB(255, 0, 0)        '赤色(持込データ側)
+                    .Cells(i, 8) = .Cells(i, 8) & "$"
+                    
                 '両データ比較行の2列目文字が同じ「subCategory」(=サブカテゴリ名)であった場合
                 ElseIf .Cells(i, 2) = "subCategory" And .Cells(i, 6) = "subCategory" Then
                 
                     'サブカテゴリ名に変更があった場合、該当する「subCategory」行の文字色を変更する
                     'サブカテゴリ名に変更があった行の4列目(持込データ側のみ)に識別マーカ「#」を追加する
-                    .Cells(i, 3).Font.Color = RGB(0, 255, 0)        '緑色(Master側)
-                    .Cells(i, 7).Font.Color = RGB(255, 0, 0)        '赤色(更新ファイル側)
+                    .Cells(i, 3).Font.Color = RGB(0, 255, 0)        '緑色(Masterデータ側)
+                    .Cells(i, 7).Font.Color = RGB(255, 0, 0)        '赤色(持込データ側)
                     .Cells(i, 8) = .Cells(i, 8) & "#"
                 End If
                 
@@ -539,23 +603,15 @@ Sub mergePlist()
                 '「写真情報」アンマッチ
                 Case "*"
                 
-                    'Masterデータ側の「写真情報」がない(空欄)場合のみ、Masterデータ側に持込データ情報(写真枚数＆写真名)をコピーする
-                    If .Cells(i + 2, 3) = "" Then
+                    'Masterデータ側の「写真情報」有＆持込データ側の「写真情報」なし(空欄)の場合は、持出データ情報による上書きは行わず、確認メッセージを表示するのみとする
+                    If .Cells(i + 2, 3) <> "" And .Cells(i + 2, 7) = "" Then
+                        MsgBox ("SubCategory: " & .Cells(i, 7) & " ⇒マスターの写真を削除する場合は手作業でマスター側を上書きしてください")
+                    
+                    Else
                         .Cells(i + 1, 3) = .Cells(i + 1, 7) '写真枚数
                         .Cells(i + 2, 3) = .Cells(i + 2, 7) '写真名(複数可)
                         .Cells(i + 1, 3).Font.Color = RGB(255, 0, 0)    '赤色(更新後)
                         .Cells(i + 2, 3).Font.Color = RGB(255, 0, 0)    '赤色(更新後)
-                        
-                    'Masterデータ側の「写真情報」がある場合、持出データ情報による上書きは行わず、確認メッセージを表示するのみとする
-                    Else
-                    
-                        '持込データ側の「写真情報」の有無により、対応する確認メッセージを表示する。
-                        If .Cells(i + 2, 7) = "" Then
-                            MsgBox ("SubCategory: " & .Cells(i, 7) & " ⇒マスターの写真を削除する場合は手作業でマスター側を上書きしてください")
-                        Else
-                            MsgBox ("SubCategory: " & .Cells(i, 7) & " ⇒マスターの写真を変更する場合は手作業でマスター側を上書きしてください")
-                        End If
-                        
                     End If
                     
                 '「サブカテゴリ名」アンマッチ
@@ -581,26 +637,17 @@ Sub mergePlist()
                     .Cells(i, 3) = .Cells(i, 7)
                     .Cells(i, 3).Font.Color = RGB(255, 0, 0)    '赤色(更新後)
                 
-                    'Masterデータ側の「写真情報」がない(空欄)場合のみ、Masterデータ側に持込データ情報(写真枚数＆写真名)をコピーする
-                    If .Cells(i + 2, 3) = "" Then
+                    'Masterデータ側の「写真情報」有＆持込データ側の「写真情報」なし(空欄)の場合は、持出データ情報による上書きは行わず、確認メッセージを表示するのみとする
+                    If .Cells(i + 2, 3) <> "" And .Cells(i + 2, 7) = "" Then
+                        MsgBox ("SubCategory: " & .Cells(i, 7) & " ⇒マスターの写真を削除する場合は手作業でマスター側を上書きしてください")
+                        
+                    Else
                         .Cells(i + 1, 3) = .Cells(i + 1, 7) '写真枚数
                         .Cells(i + 2, 3) = .Cells(i + 2, 7) '写真名(複数可)
                         .Cells(i + 1, 3).Font.Color = RGB(255, 0, 0)    '赤色(更新後)
                         .Cells(i + 2, 3).Font.Color = RGB(255, 0, 0)    '赤色(更新後)
-                        
-                    'Masterデータ側の「写真情報」がある場合、持出データ情報による上書きは行わず、確認メッセージを表示するのみとする
-                    Else
-                    
-                        '持込データ側の「写真情報」の有無により、対応する確認メッセージを表示する。
-                        If .Cells(i + 2, 7) = "" Then
-                            MsgBox ("SubCategory: " & .Cells(i, 7) & " ⇒マスターの写真を削除する場合は手作業でマスター側を上書きしてください")
-                        Else
-                            MsgBox ("SubCategory: " & .Cells(i, 7) & " ⇒マスターの写真を変更する場合は手作業でマスター側を上書きしてください")
-                        End If
-                        
                     End If
-                
-                
+                                
                 End Select
             Next i
                        
@@ -738,11 +785,17 @@ Sub mergeZip()
     Set WSH = CreateObject("WScript.Shell")
     Do While masterDirFilename <> ""
         
-        execCommand = "cd " & masterDir & " & cd .. & magick SampleList\" & masterDirFilename & " -geometry 2.3% thumbnail\#" & masterDirFilename
-        result = WSH.Run(Command:="%ComSpec% /c " & execCommand, WindowStyle:=0, WaitOnReturn:=True)
-        If result <> 0 Then
-            MsgBox (execCommand)
-        End If
+        With CreateObject("Scripting.FileSystemObject")
+            If .FileExists(thumbnailDir & "\#" & masterDirFilename) Then
+                'none
+            Else
+                execCommand = "cd " & masterDir & " & cd .. & magick SampleList\" & masterDirFilename & " -geometry 2.3% thumbnail\#" & masterDirFilename
+                result = WSH.Run(Command:="%ComSpec% /c " & execCommand, WindowStyle:=0, WaitOnReturn:=True)
+                If result <> 0 Then
+                    MsgBox (execCommand)
+                End If
+            End If
+        End With
         masterDirFilename = Dir()  '持込データフォルダ内の次の画像ファイル名を取得する
         
     Loop
@@ -794,12 +847,19 @@ Public Sub ZipFileOrFolder2(ByVal SrcPath As Variant)
     DestFilePath = Replace(DestFilePath, "''", "")
     
     'ZIP圧縮コマンド＆実行
-    psCommand = "powershell -NoProfile -ExecutionPolicy Unrestricted Compress-Archive -Path """ & SrcPath & """ -DestinationPath """ & DestFilePath & """ -Force"
+    If Dir("C:\Program Files\7-Zip\7z.exe") <> "" Then
+    
+        '7-Zipがインストールされている場合
+        psCommand = """C:\Program Files\7-Zip\7z.exe""" & " a -mx1 """ & DestFilePath & """ """ & SrcPath & """"
+    Else
+    
+        '7-Zipがインストールされていない場合
+        psCommand = "powershell -NoProfile -ExecutionPolicy Unrestricted Compress-Archive -Path """ & SrcPath & """ -DestinationPath """ & DestFilePath & """ -Force"
+    End If
     result = WSH.Run(psCommand, WindowStyle:=0, WaitOnReturn:=True)
     
     '終了処理
     Set WSH = Nothing
-
 
 End Sub
 Public Sub ZipFileOrFolder(ByVal SrcPath As Variant, Optional ByVal DestFolderPath As Variant = "")
@@ -863,10 +923,11 @@ Sub applyPlist()
     Dim arrSFMode(1000) As Variant
     Dim cnt_main, cnt_sub, cnt_main1_sub
     Dim cnt_sub2(1000) As Variant
-    Dim arr1(1000, 1000) As Variant
-    Dim arr2(1000, 1000) As Variant
-    Dim arr3(1000, 1000) As Variant
-    Dim arr4 As Variant
+    Dim arr_w1(1000, 1000) As Variant
+    Dim arr_w2(1000, 1000) As Variant
+    Dim arr_w3(1000, 1000) As Variant
+    Dim arr_w4(1000, 1000) As Variant
+    Dim arr13, arr14 As Variant
     
     '「機器番号wkシート」…機器番号情報
     With ThisWorkbook.Sheets("wk_Eno")
@@ -903,9 +964,16 @@ Sub applyPlist()
             If .Cells(i, 2) = "subCategory" Then
                 cnt_sub = cnt_sub + 1                        'subCategory要素カウントアップ
                 cnt_sub2(cnt_main) = cnt_sub                 'mainCategory要素毎のsubCategory要素数カウントアップ
-                arr1(cnt_main, cnt_sub) = .Cells(i, 3)       'subCategory情報配列セット
-                arr2(cnt_main, cnt_sub) = .Cells(i + 1, 3)   '格納画像ファイル数情報配列セット
-                arr3(cnt_main, cnt_sub) = .Cells(i + 2, 3)   '画像ファイル情報群配列セット
+                arr_w1(cnt_main, cnt_sub) = .Cells(i, 3)       'subCategory情報配列セット
+                arr_w2(cnt_main, cnt_sub) = .Cells(i + 1, 3)   '格納画像ファイル数情報配列セット
+                arr_w3(cnt_main, cnt_sub) = .Cells(i + 2, 3)   '画像ファイル情報群配列セット
+                If .Cells(i + 3, 3) = "" Then
+                
+                    'arr_w4がブランクの時にSplit処理結果(arr14)が値なしになるのを防ぐため
+                    arr_w4(cnt_main, cnt_sub) = ";:."
+                Else
+                    arr_w4(cnt_main, cnt_sub) = .Cells(i + 3, 3)   '画像テキスト情報群配列セット
+                End If
             End If
             
         Next i
@@ -928,20 +996,25 @@ Sub applyPlist()
                 Set node(6) = node(5).appendChild(xmlDoc.createNode(NODE_ELEMENT, "key", ""))
                 node(6).Text = "countStoredImages"
                 Set node(6) = node(5).appendChild(xmlDoc.createNode(NODE_ELEMENT, "integer", ""))
-                node(6).Text = arr2(i, j)   '格納画像ファイル数
+                node(6).Text = arr_w2(i, j)   '格納画像ファイル数
                 Set node(6) = node(5).appendChild(xmlDoc.createNode(NODE_ELEMENT, "key", ""))
                 node(6).Text = "images"
                 Set node(6) = node(5).appendChild(xmlDoc.createNode(NODE_ELEMENT, "array", ""))
                 
                 '画像ファイル関連情報タグ出力
-                arr4 = Split(arr3(i, j), ",")
-                For k = 0 To UBound(arr4)
-                    If arr4(k) <> "" Then
+                arr13 = Split(arr_w3(i, j), ",")
+                arr14 = Split(arr_w4(i, j), ";:.")
+                For k = 0 To UBound(arr13)
+                    If arr13(k) <> "" Then
                         Set node(7) = node(6).appendChild(xmlDoc.createNode(NODE_ELEMENT, "dict", ""))
                         Set node(8) = node(7).appendChild(xmlDoc.createNode(NODE_ELEMENT, "key", ""))
                         node(8).Text = "imageFile"
                         Set node(8) = node(7).appendChild(xmlDoc.createNode(NODE_ELEMENT, "string", ""))
-                        node(8).Text = arr4(k)  '画像ファイル名
+                        node(8).Text = arr13(k)  '画像ファイル名
+                        Set node(8) = node(7).appendChild(xmlDoc.createNode(NODE_ELEMENT, "key", ""))
+                        node(8).Text = "imageInfo"
+                        Set node(8) = node(7).appendChild(xmlDoc.createNode(NODE_ELEMENT, "string", ""))
+                        node(8).Text = arr14(k)  '画像テキスト情報
                     End If
                 Next k
                 
@@ -949,7 +1022,7 @@ Sub applyPlist()
                 Set node(6) = node(5).appendChild(xmlDoc.createNode(NODE_ELEMENT, "key", ""))
                 node(6).Text = "subCategory"
                 Set node(6) = node(5).appendChild(xmlDoc.createNode(NODE_ELEMENT, "string", ""))
-                node(6).Text = Left(arr1(i, j), InStr(arr1(i, j), ":=") - 1) & ":=-,-,-" 'サブカテゴリ名
+                node(6).Text = Left(arr_w1(i, j), InStr(arr_w1(i, j), ":=") - 1) & ":=-,-,-" 'サブカテゴリ名
                 
             Next j
             
@@ -968,24 +1041,37 @@ Sub applyPlist()
     
     xmlDoc.Save (tempFile)  '一時ファイル保存
     
-    Open tempFile For Input As #1   '入力ファイル(=一時ファイル)
-    Open fileName For Output As #2  '出力ファイル(=Masterデータ)
+    Dim inputSt As New ADODB.stream
+    Dim outputSt As New ADODB.stream
+    Dim outputSt2 As New ADODB.stream
     
-    '一時ファイルの所定ワードを修正する
-    str = "<!DOCTYPE plist PUBLIC ""-//Apple//DTD PLIST 1.0//EN"" ""http://www.apple.com/DTDs/PropertyList-1.0.dtd"">"
-    find = Array("<?DOCTYPE?>", "<plist>", "><")
-    rep = Array(str, "<plist version=""1.0"">", ">" & vbLf & "<")
-    
-    '一時ファイルからMasterデータに書き出し
-    Do Until EOF(1)
-        Line Input #1, fileData
-        
+    With inputSt
+        .Charset = "UTF-8"
+        .Open
+        .LoadFromFile (tempFile)
+        fileData = .ReadText
+        str = "<!DOCTYPE plist PUBLIC ""-//Apple//DTD PLIST 1.0//EN"" ""http://www.apple.com/DTDs/PropertyList-1.0.dtd"">"
+        find = Array("<?DOCTYPE?>", "<plist>", "><")
+        rep = Array(str, "<plist version=""1.0"">", ">" & vbLf & "<")
         For i = 0 To UBound(find)
             fileData = Replace(fileData, find(i), rep(i))
         Next i
-        Print #2, fileData
-    Loop
-    Close
+        .Close
+    End With
+    With outputSt
+        .Charset = "UTF-8"
+        .Open
+        .WriteText fileData
+        .Position = 3
+        With outputSt2
+            .Type = adTypeBinary
+            .Open
+            outputSt.CopyTo outputSt2
+            .SaveToFile (fileName), 2
+            .Close
+        End With
+        .Close
+    End With
     
     If Dir(tempFile) <> "" Then
         Kill tempFile   '一時ファイル削除
@@ -1001,19 +1087,22 @@ Sub applySampleList()
     '**********************************
     
     Dim shp, myShape
-    Dim startRow, maxRow, cntRow, cntClm, cntClm2
+    Dim startRow, maxRow, cntRow, cntClm, cntClm1, cntClm2
     Dim cnt_main, cnt_sub
     Dim cnt_sub2(1000) As Variant
     Dim arr_main(1000) As Variant
-    Dim arr1(1000, 1000) As Variant
-    Dim arr2(1000, 1000) As Variant
-    Dim arr3(1000, 1000) As Variant
-    Dim arr14(1000, 1000) As Variant
-    Dim arr4, arr5, arr6, arr7, arr8 As Variant
-    Dim i, j, k, m, p, r
+    Dim arr_w1(1000, 1000) As Variant
+    Dim arr_w2(1000, 1000) As Variant
+    Dim arr_w3(1000, 1000) As Variant
+    Dim arr_w4(1000, 1000) As Variant
+    Dim arr_w5(1000, 1000) As Variant
+    Dim arr4, arr5, arr6, arr7, arr8, arr14 As Variant
+    Dim i, j, k, m, n, p, r
     Dim targetImage, thumbnailImage, imageName, img_size
     Dim cntColumn
     Dim cnt_del
+    Dim concatStr
+    Dim startClm
     
     '*************************
     '機器写真情報書き出し処理
@@ -1057,10 +1146,16 @@ Sub applySampleList()
                 cnt_sub = cnt_sub + 1                       'subCategory要素数カウントアップ
                 cnt_sub2(cnt_main) = cnt_sub                'mainCategory要素毎のsubCategory要素数カウントアップ
                 arr6 = Split(Replace(.Cells(i, 3), ":=", "<"), "<")
-                arr1(cnt_main, cnt_sub) = arr6(0)           'subCategory情報配列セット
-                arr2(cnt_main, cnt_sub) = .Cells(i + 1, 3)  '格納画像ファイル数情報配列セット
-                arr3(cnt_main, cnt_sub) = .Cells(i + 2, 3)  '画像ファイル情報群配列セット
-                arr14(cnt_main, cnt_sub) = arr6(1)          'チェック情報群配列セット
+                arr_w1(cnt_main, cnt_sub) = arr6(0)           'subCategory情報配列セット
+                arr_w2(cnt_main, cnt_sub) = .Cells(i + 1, 3)  '格納画像ファイル数情報配列セット
+                arr_w3(cnt_main, cnt_sub) = .Cells(i + 2, 3)  '画像ファイル情報群配列セット
+                If .Cells(i + 3, 3) = "" Then
+                    'arr_w4がブランクの時にSplit処理結果が値なしになるのを防ぐため
+                    arr_w4(cnt_main, cnt_sub) = ";:."
+                Else
+                    arr_w4(cnt_main, cnt_sub) = .Cells(i + 3, 3)  '画像テキスト情報群配列セット
+                End If
+                arr_w5(cnt_main, cnt_sub) = arr6(1)          'チェック情報群配列セット
             End If
             
         Next i
@@ -1074,16 +1169,18 @@ Sub applySampleList()
         cntRow = 3
         
         '出力エリアクリア
-        .Range(.Cells(2, 1), .Cells(1048576, 5)).Clear
-        '.Columns("N:XFD").Clear
+        .Range(.Cells(2, 1), .Cells(1048576, 5)).ClearContents
         
         'チェック項目名を書き出し
-        .Range(.Columns(14), .Columns(16)).Insert Shift:=xlToRight, CopyOrigin:=xlFormatFromLeftOrAbove
+        startClm = .Cells(2, 16384).End(xlToLeft).Column + 1
+        If startClm < 14 Then
+            startClm = 14
+        End If
         For r = 0 To 2
-            .Cells(1, 14 + r) = arr8(r)
-            .Cells(2, 14 + r) = Replace(Replace(Replace(Mid(ThisWorkbook.Sheets("wk_Eno").Cells(1, 7), InStrRev(ThisWorkbook.Sheets("wk_Eno").Cells(1, 7), "\") + 1), ".plist", ""), "SampleList_", ""), "_", Chr(10))
+            .Cells(1, startClm + r) = arr8(r)
+            .Cells(2, startClm + r) = Replace(Replace(Replace(Mid(ThisWorkbook.Sheets("wk_Eno").Cells(1, 7), InStrRev(ThisWorkbook.Sheets("wk_Eno").Cells(1, 7), "\") + 1), ".plist", ""), "SampleList_", ""), "_", Chr(10))
         Next r
-        With .Range(.Cells(2, 14), .Cells(2, 16))
+        With .Range(.Cells(2, startClm), .Cells(2, startClm + 2))
             .HorizontalAlignment = xlGeneral
             .VerticalAlignment = xlCenter
             .WrapText = True
@@ -1100,11 +1197,11 @@ Sub applySampleList()
             For i = 1 To cnt_sub2(m)
             
                 '先頭subCategoryが空データの場合、処理を終了する
-                If arr1(m, i) = "" Then
+                If arr_w1(m, i) = "" Then
                     Exit For
                 End If
                 
-                .Cells(cntRow, 1) = arr1(m, i)  'subCategory名(情報)⇒シート1列目に書き出し
+                .Cells(cntRow, 1) = arr_w1(m, i)  'subCategory名(情報)⇒シート1列目に書き出し
                 
                 'セル書式設定
                 With .Cells(cntRow, 1)
@@ -1112,16 +1209,26 @@ Sub applySampleList()
                 End With
                 
                 '画像ファイル情報群を配列に格納
-                arr4 = Split(arr3(m, i), ",")
+                arr4 = Split(arr_w3(m, i), ",")
+                
+                '画像テキスト情報群を配列に格納
+                arr14 = Split(arr_w4(m, i), ";:.")
                 
                 'チェック情報群を配列に格納
-                arr7 = Split(arr14(m, i), ",")
+                arr7 = Split(arr_w5(m, i), ",")
                                 
                 cntClm = 2
-                cntClm2 = 14
+                cntClm1 = 8
+                cntClm2 = startClm
                 
                 '画像ファイル数分処理する
                 For j = 0 To UBound(arr4, 1)
+                
+                    '画像ファイルが5枚以上の場合処理を抜ける
+                    If j >= 4 Then
+                        Exit For
+                    End If
+                    
                     .Cells(cntRow, cntClm) = arr4(j)   '画像ファイル名⇒シート2列目から順次右に書き出し
                     
                     'セル書式設定
@@ -1181,13 +1288,46 @@ Sub applySampleList()
                     
                     '貼付サムネイル画像に元画像へのリンクを追加
                     .Hyperlinks.Add Anchor:=myShape, Address:=targetImage
-                    .Hyperlinks.Add Anchor:=.Cells(cntRow, cntClm), Address:=targetImage, TextToDisplay:=imageName
+                    '.Hyperlinks.Add Anchor:=.Cells(cntRow, cntClm), Address:=targetImage, TextToDisplay:=imageName
+                    
+                    '画像ファイル名を画像テキスト情報で上書き
+                    .Cells(cntRow, cntClm) = arr14(j)   '画像テキスト情報⇒シート2列目から順次右に書き出し
                     
                     cntClm = cntClm + 1 '書き出し列番号カウントアップ
                 Next j
+                
+                '全画像分の自動認識した画像テキスト情報を結合してプルダウンリストを作成する
+                concatStr = .Cells(cntRow, 2) & .Cells(cntRow, 3) & .Cells(cntRow, 4) & .Cells(cntRow, 5)   '画像テキスト情報(プルダウンリスト)⇒シート8列目から順次右に書き出し
+                
+                If concatStr <> "" Then
+                    '4列分処理する
+                    For n = cntClm1 To cntClm1 + 3
+                        With .Cells(cntRow, n).Validation
+                            .Delete
+                            .Add Type:=xlValidateList, AlertStyle:=xlValidAlertStop, Operator:= _
+                            xlBetween, Formula1:=concatStr
+                            .IgnoreBlank = True
+                            .InCellDropdown = True
+                            .InputTitle = ""
+                            .ErrorTitle = ""
+                            .InputMessage = ""
+                            .ErrorMessage = ""
+                            .IMEMode = xlIMEModeNoControl
+                            .ShowInput = False
+                            .ShowError = False
+                        End With
+                        With .Cells(cntRow, n)
+                            .HorizontalAlignment = xlGeneral
+                            .VerticalAlignment = xlCenter
+                            .WrapText = True
+                        End With
+                    Next n
+                End If
+                
                 'チェック情報数分処理する
                 For p = 0 To UBound(arr7, 1)
-                    .Cells(cntRow, cntClm2) = Replace(Replace(arr7(p), "-", "-" & Chr(10)), "*", "*" & Chr(10)) 'チェック情報⇒シート14列目から順次右に書き出し
+                    .Cells(cntRow, cntClm2) = Replace(Replace(arr7(p), "-", "-" & Chr(10)), "*", "*" & Chr(10)) 'チェック情報⇒シート最大列番号の右隣列から順次右に書き出し
+                    
                     'セル書式設定
                     With .Cells(cntRow, cntClm2)
                         .HorizontalAlignment = xlCenter
@@ -1203,10 +1343,16 @@ Sub applySampleList()
         cnt_del = 0
         For r = 0 To 2
             If arr8(r) = "" Then
-                .Columns(14 + r - cnt_del).Delete Shift:=xlToLeft
+                .Columns(startClm + r - cnt_del).Delete Shift:=xlToLeft
                 cnt_del = cnt_del + 1
             End If
         Next r
+        
+        'ウィンドウ枠の固定
+        ThisWorkbook.Sheets("SampleList").Activate
+        ThisWorkbook.Sheets("SampleList").Range("H3").Select
+        ActiveWindow.FreezePanes = False
+        ActiveWindow.FreezePanes = True
     End With
     
     '終了処理
