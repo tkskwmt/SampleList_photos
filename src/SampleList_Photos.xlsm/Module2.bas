@@ -826,7 +826,7 @@ Public Sub ZipFileOrFolder2(ByVal SrcPath As Variant)
     '   SrcPath：元ファイル・フォルダ
     
     Dim DestFilePath
-    Dim psCommand
+    Dim execCommand
     Dim WSH As Object
     Dim result
     
@@ -836,27 +836,27 @@ Public Sub ZipFileOrFolder2(ByVal SrcPath As Variant)
     'ZIP圧縮準備
     Set WSH = CreateObject("WScript.Shell")
     
-    'ファイルパスに含まれる特殊文字をエスケープする
-    SrcPath = Replace(SrcPath, " ", "' '")
-    SrcPath = Replace(SrcPath, "(", "'('")
-    SrcPath = Replace(SrcPath, ")", "')'")
-    SrcPath = Replace(SrcPath, "''", "")
-    DestFilePath = Replace(DestFilePath, " ", "' '")
-    DestFilePath = Replace(DestFilePath, "(", "'('")
-    DestFilePath = Replace(DestFilePath, ")", "')'")
-    DestFilePath = Replace(DestFilePath, "''", "")
-    
     'ZIP圧縮コマンド＆実行
     If Dir("C:\Program Files\7-Zip\7z.exe") <> "" Then
     
         '7-Zipがインストールされている場合
-        psCommand = """C:\Program Files\7-Zip\7z.exe""" & " a -mx1 """ & DestFilePath & """ """ & SrcPath & """"
+        execCommand = "c: & ""C:\Program Files\7-Zip\7z.exe""" & " a -mx1 """ & DestFilePath & """ """ & SrcPath & """"
     Else
     
         '7-Zipがインストールされていない場合
-        psCommand = "powershell -NoProfile -ExecutionPolicy Unrestricted Compress-Archive -Path """ & SrcPath & """ -DestinationPath """ & DestFilePath & """ -Force"
+        'ファイルパスに含まれる特殊文字をエスケープする
+        SrcPath = Replace(SrcPath, " ", "' '")
+        SrcPath = Replace(SrcPath, "(", "'('")
+        SrcPath = Replace(SrcPath, ")", "')'")
+        SrcPath = Replace(SrcPath, "''", "")
+        DestFilePath = Replace(DestFilePath, " ", "' '")
+        DestFilePath = Replace(DestFilePath, "(", "'('")
+        DestFilePath = Replace(DestFilePath, ")", "')'")
+        DestFilePath = Replace(DestFilePath, "''", "")
+    
+        execCommand = "powershell -NoProfile -ExecutionPolicy Unrestricted Compress-Archive -Path """ & SrcPath & """ -DestinationPath """ & DestFilePath & """ -Force"
     End If
-    result = WSH.Run(psCommand, WindowStyle:=0, WaitOnReturn:=True)
+    result = WSH.Run(Command:="%ComSpec% /c " & execCommand, WindowStyle:=0, WaitOnReturn:=True)
     
     '終了処理
     Set WSH = Nothing
