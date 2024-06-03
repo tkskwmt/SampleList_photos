@@ -1246,7 +1246,7 @@ Sub applySampleList()
                     
                     '画像ファイルパス取得
                     imageName = .Cells(cntRow, cntClm)
-                    targetImage = Replace(ThisWorkbook.Sheets("wk_Eno").Cells(1, 3), ".plist", "") & "\" & imageName
+                    targetImage = ".\Master\SampleList\" & imageName
                     thumbnailImage = Replace(ThisWorkbook.Sheets("wk_Eno").Cells(1, 3), ".plist", "") & "\#" & imageName
                     thumbnailImage = Replace(thumbnailImage, "\SampleList\", "\thumbnail\")
                     img_size = ThisWorkbook.Sheets("wk_Eno").Cells(16, 9)   'イメージ縮小サイズ
