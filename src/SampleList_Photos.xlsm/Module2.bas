@@ -1257,6 +1257,7 @@ Sub applySampleList()
                     Next k
                     
                     '画像ファイル(サムネイル)貼り付け
+                    On Error GoTo ImageMagick_Error
                     Set myShape = .Shapes.AddPicture( _
                                   fileName:=thumbnailImage, _
                                   LinkToFile:=False, _
@@ -1358,6 +1359,13 @@ Sub applySampleList()
     '終了処理
     ThisWorkbook.Sheets("SampleList").Cells(1, 1).Select
     MsgBox ("Master更新完了")
+    Exit Sub
+    
+ImageMagick_Error:
+    MsgBox ("ImageMagickアプリが動作していない可能性があります。" & Chr(10) & "ImageMagickアプリをインストール後、一度PCを再起動してからリトライ" & Chr(10) & _
+    "してみてください" & Chr(10) & "処理を中止します。")
+    End
+    
 End Sub
 
 
