@@ -1110,7 +1110,10 @@ Sub applySampleList()
 
     '全ての画像ファイルを削除(初期処理)
     For Each shp In Sheets("SampleList").Shapes
-        shp.Delete
+        If shp.Name = "output" Then
+        Else
+            shp.Delete
+        End If
     Next
     
     '初期処理
@@ -1233,8 +1236,8 @@ Sub applySampleList()
                     
                     'セル書式設定
                     With .Cells(cntRow, cntClm)
-                        .HorizontalAlignment = xlGeneral
-                        .VerticalAlignment = xlBottom
+                        .HorizontalAlignment = xlCenter
+                        .VerticalAlignment = xlCenter
                         .WrapText = False
                         .Orientation = 0
                         .AddIndent = False
@@ -1292,7 +1295,8 @@ Sub applySampleList()
                     '.Hyperlinks.Add Anchor:=.Cells(cntRow, cntClm), Address:=targetImage, TextToDisplay:=imageName
                     
                     '画像ファイル名を画像テキスト情報で上書き
-                    .Cells(cntRow, cntClm) = arr14(j)   '画像テキスト情報⇒シート2列目から順次右に書き出し
+                    '.Cells(cntRow, cntClm) = arr4(j)   '画像テキスト情報⇒シート2列目から順次右に書き出し
+                    .Cells(cntRow, cntClm) = "*"   '画像テキスト情報⇒シート2列目から順次右に書き出し
                     
                     cntClm = cntClm + 1 '書き出し列番号カウントアップ
                 Next j
