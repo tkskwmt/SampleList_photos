@@ -1,7 +1,7 @@
 Attribute VB_Name = "Module2"
 Option Explicit
 Private Declare PtrSafe Sub Sleep Lib "kernel32" (ByVal dwMilliseconds As Long)
-Sub selectFileMaster()
+Function selectFileMaster() As String
     '**********************************
     '   PLIST-Masterデータ選択処理
     '
@@ -23,7 +23,8 @@ Sub selectFileMaster()
     
     'ファイルが選択されなかった場合、処理を終了する
     If ThisWorkbook.Sheets("wk_Eno").Cells(1, startColumn + 2) = "" Then
-        Exit Sub
+        selectFileMaster = "abort"
+        Exit Function
     End If
     
     'PLIST-Masterデータ読込処理
@@ -33,8 +34,8 @@ Sub selectFileMaster()
     Call unzipFileMaster
     
     '終了処理
-    MsgBox ("Completed")
-End Sub
+    selectFileMaster = "ok"
+End Function
 Sub selectFileUpdated()
     '**********************************
     '   PLIST-持込データ選択処理
@@ -107,7 +108,11 @@ Sub selectFile(startRow, startColumn, isMaster)
         Else
             
             '初期フォルダ設定：本Master(Excel)格納フォルダパス
-            .InitialFileName = ThisWorkbook.Path
+            If isMaster = True Then
+                .InitialFileName = ThisWorkbook.Path & "\Master\"
+            Else
+                .InitialFileName = ThisWorkbook.Path
+            End If
         End If
         
         '対象ファイル種類設定：「.plist」
@@ -682,7 +687,6 @@ Sub applyPlistAndZip()
             MsgBox ("持込データのPLISTがMasterと同一の為更新なし")
             Exit Sub
         End If
-        
     End With
     
     'ZIPファイルマージ処理
@@ -693,6 +697,46 @@ Sub applyPlistAndZip()
     
     '処理終了
     MsgBox ("PLIST & ZIPファイル更新済み")
+End Sub
+Sub applyPlistManual()
+    '**********************************
+    '   PLIST手動更新反映処理
+    '
+    '   Created by: Takashi Kawamoto
+    '   Created on: 2024/7/17
+    '**********************************
+    
+    'tempフォルダ有無チェック ⇒ない場合、処理を終了する
+    If Dir("c:\temp", vbDirectory) = "" Then
+        MsgBox ("「C:\temp」フォルダを作成後、再度実行してください")
+        Exit Sub
+    End If
+    
+    'PLIST更新反映処理
+    Call applyPlist
+    
+    '「機器番号wkシート」
+    With ThisWorkbook.Sheets("wk_Eno")
+        .Columns("A:D").Font.Color = RGB(0, 0, 0)
+    End With
+    
+    '処理終了
+    MsgBox ("PLISTファイル更新済み")
+End Sub
+Sub changeEqNo()
+    '**********************************
+    '   機器番号変更処理
+    '
+    '   Created by: Takashi Kawamoto
+    '   Created on: 2024/7/17
+    '**********************************
+    
+    Dim txt1, txt2, txt3
+    
+    '機器番号変更画面表示
+    Load ChangeEqNoForm
+    ChangeEqNoForm.Show
+    
 End Sub
 Sub mergeZip()
     '**********************************
@@ -1371,6 +1415,82 @@ ImageMagick_Error:
     End
     
 End Sub
+Sub applySampleListManual()
+    '***********************************
+    '   Master(Excel)手動更新反映処理
+    '
+    '   Created by: Takashi Kawamoto
+    '   Created on: 2024/7/17
+    '***********************************
+    
+    Dim startRow, maxRow
+    Dim key1, key2
+    Dim i, j
+    
+    'Master(Excel)更新反映処理
+    Call applySampleList
+    
+    'マッチング処理(A列-F以右列)
+    startRow = 3
+    With ThisWorkbook.Sheets("SampleList")
+        maxRow = .Cells(1048576, 1).End(xlUp).Row
+        j = startRow
+        For i = startRow To maxRow
+            key1 = .Cells(i, 1)
+            key2 = .Cells(j, 7)
+            'マッチ処理
+            If key1 = key2 Then
+                j = j + 1
+            'アンマッチ処理
+            Else
+                '行追加
+                .Columns(6).Hidden = False
+                .Range(.Cells(i, 6), .Cells(i, 16384)).Insert Shift:=xlDown
+                .Columns(6).Hidden = True
+                .Cells(i, 7) = .Cells(i, 1)
+                j = i + 1
+            End If
+        Next i
+    End With
+
+End Sub
+Sub maintenanceEqNo()
+    '**********************************
+    '   機器番号体系変更処理
+    '
+    '   Created by: Takashi Kawamoto
+    '   Created on: 2024/7/23
+    '**********************************
+    
+    Dim rt
+    
+    MsgBox ("Masterフォルダ内のSampleList.plistをガイドに従って選択してください")
+    
+    'PLIST-Masterデータ選択処理
+    rt = selectFileMaster
+    If rt = "abort" Then
+        Exit Sub
+    End If
+    
+    '機器番号変更処理
+    ThisWorkbook.Sheets("wk_Eno").Cells(1, 1) = ""
+    Call changeEqNo
+    If ThisWorkbook.Sheets("wk_Eno").Cells(1, 1) = "*" Then
+        '正常処理
+        ThisWorkbook.Sheets("wk_Eno").Cells(1, 1) = ""
+    Else
+        '処理中止
+        Exit Sub
+    End If
+    
+    'PLIST手動更新反映処理
+    Call applyPlistManual
+    
+    'Master(Excel)手動更新反映処理
+    Call applySampleListManual
+    
+End Sub
+
 
 
 

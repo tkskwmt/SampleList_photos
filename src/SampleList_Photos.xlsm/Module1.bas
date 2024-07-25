@@ -44,7 +44,7 @@ Sub createMasterData()
     End If
     
     '機器No入力
-    strEqNo = InputBox("機器No？(例：S01-10,E01-99,H01-99)", , "E01-99")
+    strEqNo = InputBox("機器No？(例：S01-10,E01-99,M01-99)(Max.333)", , "E01-99")
     
     '半角/全角スペースを削除
     strEqNo = Replace(strEqNo, " ", "")
@@ -131,6 +131,11 @@ Sub createMasterData()
             End If
             If CInt(fromNum) > CInt(toNum) Then
                 MsgBox ("処理を中止します。(機器Noの開始番号が終了番号より大きくなっています)" & Chr(10) & "接頭語：" & strPre & Chr(10) & "開始番号：" & fromNum & Chr(10) & "終了番号：" & toNum)
+                GoTo abort
+            End If
+            '終了番号最大値チェック
+            If toNum > 333 Then
+                MsgBox ("処理を中止します。(機器Noの終了番号は333以下に設定してください)")
                 GoTo abort
             End If
             'デバッグ用
@@ -244,53 +249,91 @@ Sub createPlist(eqNoClm)
         Set node(2) = node(1).appendChild(xmlDoc.createNode(NODE_ELEMENT, "array", ""))
         
         '初期値
-        startRow = 2                                     '先頭行番号
+        startRow = 3                                     '先頭行番号
         maxRow = .Cells(1048576, eqNoClm).End(xlUp).Row  '最終行番号
         
         '上記情報をもとにXMLタグ情報を出力する
-        For i = startRow To maxRow
-            If .Cells(i, eqNoClm - 1) <> "" Then
-                mainCategoryName = "@-" & .Cells(i, eqNoClm - 1)
-                fromRow = i
-                toRow = .Cells(i, eqNoClm - 1).End(xlDown).Row - 1
-                If toRow > maxRow Then
-                    toRow = maxRow
-                End If
+        Select Case ThisWorkbook.Sheets("Menu").Cells(1, 7)
+        Case "単一"
+            '*** 単一メインカテゴリ形式 ***
+            mainCategoryName = "@"
+            'mainCategory関連情報タグ出力1
+            Set node(3) = node(2).appendChild(xmlDoc.createNode(NODE_ELEMENT, "dict", ""))
+            Set node(4) = node(3).appendChild(xmlDoc.createNode(NODE_ELEMENT, "key", ""))
+            node(4).Text = "items"
+            Set node(4) = node(3).appendChild(xmlDoc.createNode(NODE_ELEMENT, "array", ""))
             
-                'mainCategory関連情報タグ出力1
-                Set node(3) = node(2).appendChild(xmlDoc.createNode(NODE_ELEMENT, "dict", ""))
-                Set node(4) = node(3).appendChild(xmlDoc.createNode(NODE_ELEMENT, "key", ""))
-                node(4).Text = "items"
-                Set node(4) = node(3).appendChild(xmlDoc.createNode(NODE_ELEMENT, "array", ""))
+            'subCategory関連情報タグ出力
+            For j = startRow To maxRow
+                Set node(5) = node(4).appendChild(xmlDoc.createNode(NODE_ELEMENT, "dict", ""))
+                Set node(6) = node(5).appendChild(xmlDoc.createNode(NODE_ELEMENT, "key", ""))
+                node(6).Text = "countStoredImages"
+                Set node(6) = node(5).appendChild(xmlDoc.createNode(NODE_ELEMENT, "integer", ""))
+                node(6).Text = "0"  'デフォルト値
+                Set node(6) = node(5).appendChild(xmlDoc.createNode(NODE_ELEMENT, "key", ""))
+                node(6).Text = "images"
+                Set node(6) = node(5).appendChild(xmlDoc.createNode(NODE_ELEMENT, "array", ""))
+                Set node(6) = node(5).appendChild(xmlDoc.createNode(NODE_ELEMENT, "key", ""))
+                node(6).Text = "subCategory"
+                Set node(6) = node(5).appendChild(xmlDoc.createNode(NODE_ELEMENT, "string", ""))
+                node(6).Text = .Cells(j, eqNoClm) & ":=-,-,-"   'サブカテゴリ名
+            Next j
+        
+            'mainCategory関連情報タグ出力2
+            Set node(4) = node(3).appendChild(xmlDoc.createNode(NODE_ELEMENT, "key", ""))
+            node(4).Text = "mainCategory"
+            Set node(4) = node(3).appendChild(xmlDoc.createNode(NODE_ELEMENT, "string", ""))
+            node(4).Text = mainCategoryName & ":=,," 'メインカテゴリ名
+            Set node(4) = node(3).appendChild(xmlDoc.createNode(NODE_ELEMENT, "key", ""))
+            node(4).Text = "subFolderMode"
+            Set node(4) = node(3).appendChild(xmlDoc.createNode(NODE_ELEMENT, "integer", ""))
+            node(4).Text = "0"  'デフォルト値
                 
-                'subCategory関連情報タグ出力
-                For j = fromRow To toRow
-                    Set node(5) = node(4).appendChild(xmlDoc.createNode(NODE_ELEMENT, "dict", ""))
-                    Set node(6) = node(5).appendChild(xmlDoc.createNode(NODE_ELEMENT, "key", ""))
-                    node(6).Text = "countStoredImages"
-                    Set node(6) = node(5).appendChild(xmlDoc.createNode(NODE_ELEMENT, "integer", ""))
-                    node(6).Text = "0"  'デフォルト値
-                    Set node(6) = node(5).appendChild(xmlDoc.createNode(NODE_ELEMENT, "key", ""))
-                    node(6).Text = "images"
-                    Set node(6) = node(5).appendChild(xmlDoc.createNode(NODE_ELEMENT, "array", ""))
-                    Set node(6) = node(5).appendChild(xmlDoc.createNode(NODE_ELEMENT, "key", ""))
-                    node(6).Text = "subCategory"
-                    Set node(6) = node(5).appendChild(xmlDoc.createNode(NODE_ELEMENT, "string", ""))
-                    node(6).Text = .Cells(j, eqNoClm) & ":=-,-,-"   'サブカテゴリ名
-                Next j
-            
-                'mainCategory関連情報タグ出力2
-                Set node(4) = node(3).appendChild(xmlDoc.createNode(NODE_ELEMENT, "key", ""))
-                node(4).Text = "mainCategory"
-                Set node(4) = node(3).appendChild(xmlDoc.createNode(NODE_ELEMENT, "string", ""))
-                node(4).Text = mainCategoryName & ":=,," 'メインカテゴリ名
-                Set node(4) = node(3).appendChild(xmlDoc.createNode(NODE_ELEMENT, "key", ""))
-                node(4).Text = "subFolderMode"
-                Set node(4) = node(3).appendChild(xmlDoc.createNode(NODE_ELEMENT, "integer", ""))
-                node(4).Text = "0"  'デフォルト値
-            End If
-        Next i
-            
+        Case "複数"
+            '*** 複数メインカテゴリ形式 ***
+            For i = startRow To maxRow
+                If .Cells(i, eqNoClm - 1) <> "" Then
+                    mainCategoryName = "@-" & .Cells(i, eqNoClm - 1)
+                    fromRow = i
+                    toRow = .Cells(i, eqNoClm - 1).End(xlDown).Row - 1
+                    If toRow > maxRow Then
+                        toRow = maxRow
+                    End If
+    
+                    'mainCategory関連情報タグ出力1
+                    Set node(3) = node(2).appendChild(xmlDoc.createNode(NODE_ELEMENT, "dict", ""))
+                    Set node(4) = node(3).appendChild(xmlDoc.createNode(NODE_ELEMENT, "key", ""))
+                    node(4).Text = "items"
+                    Set node(4) = node(3).appendChild(xmlDoc.createNode(NODE_ELEMENT, "array", ""))
+    
+                    'subCategory関連情報タグ出力
+                    For j = fromRow To toRow
+                        Set node(5) = node(4).appendChild(xmlDoc.createNode(NODE_ELEMENT, "dict", ""))
+                        Set node(6) = node(5).appendChild(xmlDoc.createNode(NODE_ELEMENT, "key", ""))
+                        node(6).Text = "countStoredImages"
+                        Set node(6) = node(5).appendChild(xmlDoc.createNode(NODE_ELEMENT, "integer", ""))
+                        node(6).Text = "0"  'デフォルト値
+                        Set node(6) = node(5).appendChild(xmlDoc.createNode(NODE_ELEMENT, "key", ""))
+                        node(6).Text = "images"
+                        Set node(6) = node(5).appendChild(xmlDoc.createNode(NODE_ELEMENT, "array", ""))
+                        Set node(6) = node(5).appendChild(xmlDoc.createNode(NODE_ELEMENT, "key", ""))
+                        node(6).Text = "subCategory"
+                        Set node(6) = node(5).appendChild(xmlDoc.createNode(NODE_ELEMENT, "string", ""))
+                        node(6).Text = .Cells(j, eqNoClm) & ":=-,-,-"   'サブカテゴリ名
+                    Next j
+    
+                    'mainCategory関連情報タグ出力2
+                    Set node(4) = node(3).appendChild(xmlDoc.createNode(NODE_ELEMENT, "key", ""))
+                    node(4).Text = "mainCategory"
+                    Set node(4) = node(3).appendChild(xmlDoc.createNode(NODE_ELEMENT, "string", ""))
+                    node(4).Text = mainCategoryName & ":=,," 'メインカテゴリ名
+                    Set node(4) = node(3).appendChild(xmlDoc.createNode(NODE_ELEMENT, "key", ""))
+                    node(4).Text = "subFolderMode"
+                    Set node(4) = node(3).appendChild(xmlDoc.createNode(NODE_ELEMENT, "integer", ""))
+                    node(4).Text = "0"  'デフォルト値
+                End If
+            Next i
+        End Select
     End With
     
     xmlDoc.Save (tempFile)  '一時ファイル保存
