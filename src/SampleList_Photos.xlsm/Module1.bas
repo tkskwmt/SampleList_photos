@@ -2,7 +2,7 @@ Attribute VB_Name = "Module1"
 Option Explicit
 Sub createMasterData()
     '**********************************
-    '   Masterƒf[ƒ^ì¬ˆ—
+    '   Masterãƒ‡ãƒ¼ã‚¿ä½œæˆå‡¦ç†
     '
     '   Created by: Takashi Kawamoto
     '   Created on: 2023/9/6
@@ -24,139 +24,139 @@ Sub createMasterData()
     Dim oldFileName, newFileName
     Dim oldFilePath, newFilePath
 
-    'tempƒtƒHƒ‹ƒ_—L–³ƒ`ƒFƒbƒN
+    'tempãƒ•ã‚©ãƒ«ãƒ€æœ‰ç„¡ãƒã‚§ãƒƒã‚¯
     If Dir("c:\temp", vbDirectory) = "" Then
         MkDir "c:\temp"
     End If
     
-    'Masterƒf[ƒ^ƒtƒHƒ‹ƒ_
+    'Masterãƒ‡ãƒ¼ã‚¿ãƒ•ã‚©ãƒ«ãƒ€
     masterDir = ThisWorkbook.Path & "\Master"
     
-    'Masterƒf[ƒ^ƒtƒHƒ‹ƒ_‚ª‚È‚¢ê‡‚ÍV‹Kì¬‚·‚é•Master(Excel)“à‚Ì‹Æ–±”Ô†‚ğƒNƒŠƒA‚·‚é
+    'Masterãƒ‡ãƒ¼ã‚¿ãƒ•ã‚©ãƒ«ãƒ€ãŒãªã„å ´åˆã¯æ–°è¦ä½œæˆã™ã‚‹ï¼†Master(Excel)å†…ã®æ¥­å‹™ç•ªå·ã‚’ã‚¯ãƒªã‚¢ã™ã‚‹
     If Dir(masterDir, vbDirectory) = "" Then
         MkDir masterDir
         ThisWorkbook.Sheets("SampleList").Cells(1, 1).ClearContents
         
-    'Masterƒf[ƒ^ƒtƒHƒ‹ƒ_‚ªŠù‚É‘¶İ‚·‚éê‡‚ÍAŠm”FƒƒbƒZ[ƒW‚ğo‚µ‚Äˆ—‚ğ’†~‚·‚éB(Œë‚Á‚Ä‰Šú‰»‚·‚é‚Ì‚ğ–h‚®‚½‚ß)
+    'Masterãƒ‡ãƒ¼ã‚¿ãƒ•ã‚©ãƒ«ãƒ€ãŒæ—¢ã«å­˜åœ¨ã™ã‚‹å ´åˆã¯ã€ç¢ºèªãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’å‡ºã—ã¦å‡¦ç†ã‚’ä¸­æ­¢ã™ã‚‹ã€‚(èª¤ã£ã¦åˆæœŸåŒ–ã™ã‚‹ã®ã‚’é˜²ããŸã‚)
     Else
-        MsgBox ("MasterƒtƒHƒ‹ƒ_‚ª‘¶İ‚µ‚Ü‚·B" & Chr(10) & "‰Šú‰»‚µ‚½‚¢ê‡‚Í¤MasterƒtƒHƒ‹ƒ_‚ğíœ‚µ‚Ä‚©‚çÄÀs‚µ‚Ä‚­‚¾‚³‚¢¡")
+        MsgBox ("Masterãƒ•ã‚©ãƒ«ãƒ€ãŒå­˜åœ¨ã—ã¾ã™ã€‚" & Chr(10) & "åˆæœŸåŒ–ã—ãŸã„å ´åˆã¯ï½¤Masterãƒ•ã‚©ãƒ«ãƒ€ã‚’å‰Šé™¤ã—ã¦ã‹ã‚‰å†å®Ÿè¡Œã—ã¦ãã ã•ã„ï½¡")
         Exit Sub
     End If
     
-    '‹@ŠíNo“ü—Í
-    strEqNo = InputBox("‹@ŠíNoH(—áFS01-10,E01-99,M01-99)(Max.333)", , "E01-99")
+    'æ©Ÿå™¨Noå…¥åŠ›
+    strEqNo = InputBox("æ©Ÿå™¨Noï¼Ÿ(ä¾‹ï¼šS01-10,E01-99,M01-99)(Max.333)", , "E01-99")
     
-    '”¼Šp/‘SŠpƒXƒy[ƒX‚ğíœ
+    'åŠè§’/å…¨è§’ã‚¹ãƒšãƒ¼ã‚¹ã‚’å‰Šé™¤
     strEqNo = Replace(strEqNo, " ", "")
-    strEqNo = Replace(strEqNo, "@", "")
+    strEqNo = Replace(strEqNo, "ã€€", "")
     
-    '–¢“ü—Í‚È‚çˆ—‚ğ’†~‚·‚é
+    'æœªå…¥åŠ›ãªã‚‰å‡¦ç†ã‚’ä¸­æ­¢ã™ã‚‹
     If strEqNo = "" Then
-        MsgBox ("ˆ—‚ğ’†~‚µ‚Ü‚·B(‹@ŠíNo–¢“ü—Í)")
+        MsgBox ("å‡¦ç†ã‚’ä¸­æ­¢ã—ã¾ã™ã€‚(æ©Ÿå™¨Noæœªå…¥åŠ›)")
         GoTo abort
     End If
     
-    '‹@ŠíNo‚ğuSampleListvƒV[ƒg‚É‘‚«o‚µ
+    'æ©Ÿå™¨Noã‚’ã€ŒSampleListã€ã‚·ãƒ¼ãƒˆã«æ›¸ãå‡ºã—
     eqNoClm = 7
     toClm = 13
     wtRow = 3
     With ThisWorkbook.Sheets("SampleList")
     
-        '‘‚«o‚µƒGƒŠƒAƒNƒŠƒA
+        'æ›¸ãå‡ºã—ã‚¨ãƒªã‚¢ã‚¯ãƒªã‚¢
         .Range(.Cells(2, eqNoClm - 1), .Cells(1048576, eqNoClm)).ClearContents
     
         arrEqNo = Split(strEqNo, ",")
         For i = 0 To UBound(arrEqNo)
             
-            '“ü—Í’l‚Éu-v‚ª‚È‚¢ê‡‚Íˆ—‚ğ’†~‚·‚é
+            'å…¥åŠ›å€¤ã«ã€Œ-ã€ãŒãªã„å ´åˆã¯å‡¦ç†ã‚’ä¸­æ­¢ã™ã‚‹
             If InStr(arrEqNo(i), "-") = 0 Then
-                MsgBox ("ˆ—‚ğ’†~‚µ‚Ü‚·B" & Chr(10) & "‹@ŠíNo‚ÌŠJn”Ô†‚ÆI—¹”Ô†‚ÌŠÔ‚Éu-v‚ğ’Ç‰Á‚µ‚Ä‚­‚¾‚³‚¢B" & Chr(10) & "“ü—Í’lF" & arrEqNo(i))
+                MsgBox ("å‡¦ç†ã‚’ä¸­æ­¢ã—ã¾ã™ã€‚" & Chr(10) & "æ©Ÿå™¨Noã®é–‹å§‹ç•ªå·ã¨çµ‚äº†ç•ªå·ã®é–“ã«ã€Œ-ã€ã‚’è¿½åŠ ã—ã¦ãã ã•ã„ã€‚" & Chr(10) & "å…¥åŠ›å€¤ï¼š" & arrEqNo(i))
                 GoTo abort
             End If
             
-            'y“Áêl—¶z‹@ŠíNo‚ÌÚ“ªŒê‚É”š‚ğ“ü‚ê‚½‚¢ê‡‚ÍA”š“ü‚èÚ“ªŒê‚ğ‘åƒJƒbƒR[]‚Å‚­‚­‚é
+            'ã€ç‰¹æ®Šè€ƒæ…®ã€‘æ©Ÿå™¨Noã®æ¥é ­èªã«æ•°å­—ã‚’å…¥ã‚ŒãŸã„å ´åˆã¯ã€æ•°å­—å…¥ã‚Šæ¥é ­èªã‚’å¤§ã‚«ãƒƒã‚³[]ã§ããã‚‹
             If InStr(arrEqNo(i), "]") > 0 Then
                 posNum = InStr(arrEqNo(i), "]") + 1
                 If Mid(arrEqNo(i), posNum, 1) <> "0" Then
-                    MsgBox ("ˆ—‚ğ’†~‚µ‚Ü‚·B" & Chr(10) & "‹@ŠíNo‚ÌŠJn”Ô†‚Í‚O–„‚ß‚Åw’è‚µ‚Ä‚­‚¾‚³‚¢B(—áFE01, E001, H01, “™)" & Chr(10) & "“ü—Í’lF" & arrEqNo(i))
+                    MsgBox ("å‡¦ç†ã‚’ä¸­æ­¢ã—ã¾ã™ã€‚" & Chr(10) & "æ©Ÿå™¨Noã®é–‹å§‹ç•ªå·ã¯ï¼åŸ‹ã‚ã§æŒ‡å®šã—ã¦ãã ã•ã„ã€‚(ä¾‹ï¼šE01, E001, H01, ç­‰)" & Chr(10) & "å…¥åŠ›å€¤ï¼š" & arrEqNo(i))
                     GoTo abort
                 End If
                 
-                '‹@ŠíNo‚ÌÚ“ªŒê‚ğæ“¾‚·‚é
-                strPre = Replace(Replace(Left(arrEqNo(i), posNum - 1), "[", ""), "]", "") '‹@ŠíNo‚ÌÚ“ªŒê
+                'æ©Ÿå™¨Noã®æ¥é ­èªã‚’å–å¾—ã™ã‚‹
+                strPre = Replace(Replace(Left(arrEqNo(i), posNum - 1), "[", ""), "]", "") 'æ©Ÿå™¨Noã®æ¥é ­èª
                 
-                'Ú“ªŒêƒ`ƒFƒbƒN
+                'æ¥é ­èªãƒã‚§ãƒƒã‚¯
                 If strPre = "" Then
-                    MsgBox ("ˆ—‚ğ’†~‚µ‚Ü‚·B(‹@ŠíNo‚ÌÚ“ªŒê‚ª”»•Ê‚Å‚«‚Ü‚¹‚ñ)" & Chr(10) & "“ü—Í’lF" & arrEqNo(i))
+                    MsgBox ("å‡¦ç†ã‚’ä¸­æ­¢ã—ã¾ã™ã€‚(æ©Ÿå™¨Noã®æ¥é ­èªãŒåˆ¤åˆ¥ã§ãã¾ã›ã‚“)" & Chr(10) & "å…¥åŠ›å€¤ï¼š" & arrEqNo(i))
                     GoTo abort
                 End If
             Else
-                '“ü—Í’l(ŠJn”Ô†)‚ğ¶‚©‚çŒ©‚ÄÅ‰‚Éu0v‚ªŒ©‚Â‚©‚Á‚½ˆÊ’u‚Ìè‘O‚Ü‚Å‚ğ‹@ŠíNo‚ÌÚ“ªŒê(uEv“™)‚Æ”»•Ê‚·‚é
+                'å…¥åŠ›å€¤(é–‹å§‹ç•ªå·)ã‚’å·¦ã‹ã‚‰è¦‹ã¦æœ€åˆã«ã€Œ0ã€ãŒè¦‹ã¤ã‹ã£ãŸä½ç½®ã®æ‰‹å‰ã¾ã§ã‚’æ©Ÿå™¨Noã®æ¥é ­èª(ã€ŒEã€ç­‰)ã¨åˆ¤åˆ¥ã™ã‚‹
                 strFromEqNo = Left(arrEqNo(i), InStr(arrEqNo(i), "-") - 1)
                 posNum = InStr(strFromEqNo, "0")
                 
-                '“ü—Í’l‚Éu0v‚ªŒ©‚Â‚©‚ç‚È‚¢ê‡Aˆ—’†~
+                'å…¥åŠ›å€¤ã«ã€Œ0ã€ãŒè¦‹ã¤ã‹ã‚‰ãªã„å ´åˆã€å‡¦ç†ä¸­æ­¢
                 If posNum = 0 Then
-                    MsgBox ("ˆ—‚ğ’†~‚µ‚Ü‚·B" & Chr(10) & "‹@ŠíNo‚ÌŠJn”Ô†‚Í‚O–„‚ß‚Åw’è‚µ‚Ä‚­‚¾‚³‚¢B(—áFE01, E001, H01, “™)" & Chr(10) & "“ü—Í’lF" & arrEqNo(i))
+                    MsgBox ("å‡¦ç†ã‚’ä¸­æ­¢ã—ã¾ã™ã€‚" & Chr(10) & "æ©Ÿå™¨Noã®é–‹å§‹ç•ªå·ã¯ï¼åŸ‹ã‚ã§æŒ‡å®šã—ã¦ãã ã•ã„ã€‚(ä¾‹ï¼šE01, E001, H01, ç­‰)" & Chr(10) & "å…¥åŠ›å€¤ï¼š" & arrEqNo(i))
                     GoTo abort
                 End If
                 
-                '‹@ŠíNo‚ÌÚ“ªŒê‚ğæ“¾‚·‚é
-                strPre = Left(arrEqNo(i), posNum - 1)   '‹@ŠíNo‚ÌÚ“ªŒê
+                'æ©Ÿå™¨Noã®æ¥é ­èªã‚’å–å¾—ã™ã‚‹
+                strPre = Left(arrEqNo(i), posNum - 1)   'æ©Ÿå™¨Noã®æ¥é ­èª
             
-                'Ú“ªŒêƒ`ƒFƒbƒN
+                'æ¥é ­èªãƒã‚§ãƒƒã‚¯
                 If strPre = "" Then
-                    MsgBox ("ˆ—‚ğ’†~‚µ‚Ü‚·B(‹@ŠíNo‚ÌÚ“ªŒê‚ª”»•Ê‚Å‚«‚Ü‚¹‚ñ)" & Chr(10) & "“ü—Í’lF" & arrEqNo(i))
+                    MsgBox ("å‡¦ç†ã‚’ä¸­æ­¢ã—ã¾ã™ã€‚(æ©Ÿå™¨Noã®æ¥é ­èªãŒåˆ¤åˆ¥ã§ãã¾ã›ã‚“)" & Chr(10) & "å…¥åŠ›å€¤ï¼š" & arrEqNo(i))
                     GoTo abort
                 End If
                 For k = 1 To Len(strPre)
                     If IsNumeric(Mid(strPre, k, 1)) Then
-                        MsgBox ("ˆ—‚ğ’†~‚µ‚Ü‚·B(‹@ŠíNo‚ÌÚ“ªŒê‚É”š‚Í“ü‚ê‚ç‚ê‚Ü‚¹‚ñ)" & Chr(10) & "Ú“ªŒêF" & strPre & Chr(10) & "“ü—Í’lF" & arrEqNo(i))
+                        MsgBox ("å‡¦ç†ã‚’ä¸­æ­¢ã—ã¾ã™ã€‚(æ©Ÿå™¨Noã®æ¥é ­èªã«æ•°å­—ã¯å…¥ã‚Œã‚‰ã‚Œã¾ã›ã‚“)" & Chr(10) & "æ¥é ­èªï¼š" & strPre & Chr(10) & "å…¥åŠ›å€¤ï¼š" & arrEqNo(i))
                         GoTo abort
                     End If
                 Next k
             End If
             
-            '‹@ŠíNo‚ÌŠJn”Ô†‚ÆI—¹”Ô†‚ğæ“¾‚·‚é
+            'æ©Ÿå™¨Noã®é–‹å§‹ç•ªå·ã¨çµ‚äº†ç•ªå·ã‚’å–å¾—ã™ã‚‹
             strNum = Mid(arrEqNo(i), posNum)
             arrNum = Split(strNum, "-")
-            fromNum = arrNum(0) '‹@ŠíNo-ŠJn”Ô†
-            toNum = arrNum(1)   '‹@ŠíNo-I—¹”Ô†
-            toNum = Replace(toNum, strPre, "")  '‹@ŠíNo‚ÌI—¹”Ô†‚ÉÚ“ªŒê‚ªŠÜ‚Ü‚ê‚éê‡‚ÍÚ“ªŒê‚ğíœ‚µ‚Ä”’l‰»‚·‚é
+            fromNum = arrNum(0) 'æ©Ÿå™¨No-é–‹å§‹ç•ªå·
+            toNum = arrNum(1)   'æ©Ÿå™¨No-çµ‚äº†ç•ªå·
+            toNum = Replace(toNum, strPre, "")  'æ©Ÿå™¨Noã®çµ‚äº†ç•ªå·ã«æ¥é ­èªãŒå«ã¾ã‚Œã‚‹å ´åˆã¯æ¥é ­èªã‚’å‰Šé™¤ã—ã¦æ•°å€¤åŒ–ã™ã‚‹
             
-            'ŠJn”Ô†-I—¹”Ô†ƒ`ƒFƒbƒN
+            'é–‹å§‹ç•ªå·-çµ‚äº†ç•ªå·ãƒã‚§ãƒƒã‚¯
             If IsNumeric(fromNum) = False Or IsNumeric(toNum) = False Then
-                MsgBox ("ˆ—‚ğ’†~‚µ‚Ü‚·B(‹@ŠíNo‚ÌŠJnEI—¹”Ô†‚ª”’l‚Å‚Í‚ ‚è‚Ü‚¹‚ñ)" & Chr(10) & "Ú“ªŒêF" & strPre & Chr(10) & "ŠJn”Ô†F" & fromNum & Chr(10) & "I—¹”Ô†F" & toNum)
+                MsgBox ("å‡¦ç†ã‚’ä¸­æ­¢ã—ã¾ã™ã€‚(æ©Ÿå™¨Noã®é–‹å§‹ãƒ»çµ‚äº†ç•ªå·ãŒæ•°å€¤ã§ã¯ã‚ã‚Šã¾ã›ã‚“)" & Chr(10) & "æ¥é ­èªï¼š" & strPre & Chr(10) & "é–‹å§‹ç•ªå·ï¼š" & fromNum & Chr(10) & "çµ‚äº†ç•ªå·ï¼š" & toNum)
                 GoTo abort
             End If
             If CInt(fromNum) > CInt(toNum) Then
-                MsgBox ("ˆ—‚ğ’†~‚µ‚Ü‚·B(‹@ŠíNo‚ÌŠJn”Ô†‚ªI—¹”Ô†‚æ‚è‘å‚«‚­‚È‚Á‚Ä‚¢‚Ü‚·)" & Chr(10) & "Ú“ªŒêF" & strPre & Chr(10) & "ŠJn”Ô†F" & fromNum & Chr(10) & "I—¹”Ô†F" & toNum)
+                MsgBox ("å‡¦ç†ã‚’ä¸­æ­¢ã—ã¾ã™ã€‚(æ©Ÿå™¨Noã®é–‹å§‹ç•ªå·ãŒçµ‚äº†ç•ªå·ã‚ˆã‚Šå¤§ãããªã£ã¦ã„ã¾ã™)" & Chr(10) & "æ¥é ­èªï¼š" & strPre & Chr(10) & "é–‹å§‹ç•ªå·ï¼š" & fromNum & Chr(10) & "çµ‚äº†ç•ªå·ï¼š" & toNum)
                 GoTo abort
             End If
-            'I—¹”Ô†Å‘å’lƒ`ƒFƒbƒN
+            'çµ‚äº†ç•ªå·æœ€å¤§å€¤ãƒã‚§ãƒƒã‚¯
             If toNum > 333 Then
-                MsgBox ("ˆ—‚ğ’†~‚µ‚Ü‚·B(‹@ŠíNo‚ÌI—¹”Ô†‚Í333ˆÈ‰º‚Éİ’è‚µ‚Ä‚­‚¾‚³‚¢)")
+                MsgBox ("å‡¦ç†ã‚’ä¸­æ­¢ã—ã¾ã™ã€‚(æ©Ÿå™¨Noã®çµ‚äº†ç•ªå·ã¯333ä»¥ä¸‹ã«è¨­å®šã—ã¦ãã ã•ã„)")
                 GoTo abort
             End If
-            'ƒfƒoƒbƒO—p
+            'ãƒ‡ãƒãƒƒã‚°ç”¨
             'MsgBox ("fromNum: " & fromNum & " toNum: " & toNum)
             
-            '‹@ŠíNo‚ÌÚ“ªŒê‚ÌØ‚è‘Ö‚í‚èˆÊ’u‚ğƒ}[ƒLƒ“ƒO‚·‚é
+            'æ©Ÿå™¨Noã®æ¥é ­èªã®åˆ‡ã‚Šæ›¿ã‚ã‚Šä½ç½®ã‚’ãƒãƒ¼ã‚­ãƒ³ã‚°ã™ã‚‹
             .Cells(wtRow, eqNoClm - 1) = strPre
             With .Cells(wtRow, eqNoClm - 1)
                 .VerticalAlignment = xlCenter
             End With
             
-            '‹@ŠíNo‚ÌŠJn”Ô†‚©‚çI—¹”Ô†‚Ü‚Åˆ—‚ğŒJ‚è•Ô‚·
+            'æ©Ÿå™¨Noã®é–‹å§‹ç•ªå·ã‹ã‚‰çµ‚äº†ç•ªå·ã¾ã§å‡¦ç†ã‚’ç¹°ã‚Šè¿”ã™
             For j = CInt(fromNum) To CInt(toNum)
             
-                '”’lŒ…”ƒ`ƒFƒbƒN
+                'æ•°å€¤æ¡æ•°ãƒã‚§ãƒƒã‚¯
                 If Len(toNum) >= 4 Then
-                    MsgBox ("ˆ—‚ğI—¹‚µ‚Ü‚·B(‹@ŠíNo‚Ì”’l‚ÍÅ‘å3Œ…‚Ü‚Å)" & Chr(10) & "“ü—Í’lF" & toNum)
+                    MsgBox ("å‡¦ç†ã‚’çµ‚äº†ã—ã¾ã™ã€‚(æ©Ÿå™¨Noã®æ•°å€¤ã¯æœ€å¤§3æ¡ã¾ã§)" & Chr(10) & "å…¥åŠ›å€¤ï¼š" & toNum)
                     GoTo abort
                 End If
                 
-                'I—¹”Ô†‚ÌŒ…”‚É‚æ‚è”Ô†‚Ìƒ[ƒ–„‚ß‚ğ‚·‚é
+                'çµ‚äº†ç•ªå·ã®æ¡æ•°ã«ã‚ˆã‚Šç•ªå·ã®ã‚¼ãƒ­åŸ‹ã‚ã‚’ã™ã‚‹
                 Select Case Len(toNum)
                 Case 1
                     .Cells(wtRow, eqNoClm) = strPre & Format(j, "0")
@@ -166,24 +166,24 @@ Sub createMasterData()
                     .Cells(wtRow, eqNoClm) = strPre & Format(j, "000")
                 End Select
                 
-                'ƒZƒ‹‘®İ’è
+                'ã‚»ãƒ«æ›¸å¼è¨­å®š
                 With .Range(.Cells(wtRow, eqNoClm), .Cells(wtRow, toClm))
                     .VerticalAlignment = xlCenter
                 End With
                 
-                '‘‚«o‚µs”Ô†ƒCƒ“ƒNƒŠƒƒ“ƒg
+                'æ›¸ãå‡ºã—è¡Œç•ªå·ã‚¤ãƒ³ã‚¯ãƒªãƒ¡ãƒ³ãƒˆ
                 wtRow = wtRow + 1
             Next j
         Next i
     End With
     
-    'PLISTV‹Kì¬ˆ—
+    'PLISTæ–°è¦ä½œæˆå‡¦ç†
     Call createPlist(eqNoClm)
     
-    'ZIPƒtƒ@ƒCƒ‹V‹Kì¬ˆ—
+    'ZIPãƒ•ã‚¡ã‚¤ãƒ«æ–°è¦ä½œæˆå‡¦ç†
     Call createZip
     
-    'Master(Excel)•Û‘¶
+    'Master(Excel)ä¿å­˜
     Set wb = ThisWorkbook
     If wb.ReadOnly = True Then
         oldFileName = ThisWorkbook.Name
@@ -195,19 +195,19 @@ Sub createMasterData()
             If Dir(ThisWorkbook.Path & "\old", vbDirectory) = "" Then
                 MkDir ThisWorkbook.Path & "\old"
             End If
-            Name oldFilePath As ThisWorkbook.Path & "\old\y‹Œz" & oldFileName
+            Name oldFilePath As ThisWorkbook.Path & "\old\ã€æ—§ã€‘" & oldFileName
         End If
-        MsgBox ("Master(Excel)ƒtƒ@ƒCƒ‹‚ª“Ç‚İæ‚èê—p‚Ì‚½‚ß•Ê–¼‚Å•Û‘¶‚µ‚Ü‚µ‚½" & Chr(10) & newFileName)
+        MsgBox ("Master(Excel)ãƒ•ã‚¡ã‚¤ãƒ«ãŒèª­ã¿å–ã‚Šå°‚ç”¨ã®ãŸã‚åˆ¥åã§ä¿å­˜ã—ã¾ã—ãŸ" & Chr(10) & newFileName)
     Else
         ThisWorkbook.Save
     End If
     
-    'I—¹ˆ—
-    MsgBox ("Masterƒf[ƒ^ì¬Š®—¹")
+    'çµ‚äº†å‡¦ç†
+    MsgBox ("Masterãƒ‡ãƒ¼ã‚¿ä½œæˆå®Œäº†")
     Exit Sub
     
 abort:
-        'Masterƒf[ƒ^ƒtƒHƒ‹ƒ_íœ
+        'Masterãƒ‡ãƒ¼ã‚¿ãƒ•ã‚©ãƒ«ãƒ€å‰Šé™¤
         If Dir(masterDir, vbDirectory) <> "" Then
             With CreateObject("Scripting.FileSystemObject")
                 .DeleteFolder masterDir
@@ -217,7 +217,7 @@ abort:
 End Sub
 Sub createPlist(eqNoClm)
     '**********************************
-    '   PLISTV‹Kì¬ˆ—
+    '   PLISTæ–°è¦ä½œæˆå‡¦ç†
     '
     '   Created by: Takashi Kawamoto
     '   Created on: 2023/9/6
@@ -238,59 +238,59 @@ Sub createPlist(eqNoClm)
     
     With ThisWorkbook.Sheets("SampleList")
     
-        tempFile = "c:\\temp\\temp.plist"   'ˆêƒtƒ@ƒCƒ‹
-        fileName = ThisWorkbook.Path & "\Master\SampleList.plist" 'new plist(=Masterƒf[ƒ^)ËMaster(Excel)‚Ì“¯ˆêŠK‘w‚ÌuMastervƒtƒHƒ‹ƒ_‚Éo—Í‚³‚ê‚é
+        tempFile = "c:\\temp\\temp.plist"   'ä¸€æ™‚ãƒ•ã‚¡ã‚¤ãƒ«
+        fileName = ThisWorkbook.Path & "\Master\SampleList.plist" 'new plist(=Masterãƒ‡ãƒ¼ã‚¿)â‡’Master(Excel)ã®åŒä¸€éšå±¤ã®ã€ŒMasterã€ãƒ•ã‚©ãƒ«ãƒ€ã«å‡ºåŠ›ã•ã‚Œã‚‹
                 
-        'XMLƒtƒ@ƒCƒ‹o—Í€”õ
+        'XMLãƒ•ã‚¡ã‚¤ãƒ«å‡ºåŠ›æº–å‚™
         Set xmlDoc = New MSXML2.DOMDocument60
         Set xmlPI = xmlDoc.appendChild(xmlDoc.createProcessingInstruction("xml", "version=""1.0"" encoding=""UTF-8"""))
         Set xmlPI = xmlDoc.appendChild(xmlDoc.createProcessingInstruction("DOCTYPE", ""))
         Set node(1) = xmlDoc.appendChild(xmlDoc.createNode(NODE_ELEMENT, "plist", ""))
         Set node(2) = node(1).appendChild(xmlDoc.createNode(NODE_ELEMENT, "array", ""))
         
-        '‰Šú’l
-        startRow = 3                                     'æ“ªs”Ô†
-        maxRow = .Cells(1048576, eqNoClm).End(xlUp).Row  'ÅIs”Ô†
+        'åˆæœŸå€¤
+        startRow = 3                                     'å…ˆé ­è¡Œç•ªå·
+        maxRow = .Cells(1048576, eqNoClm).End(xlUp).Row  'æœ€çµ‚è¡Œç•ªå·
         
-        'ã‹Lî•ñ‚ğ‚à‚Æ‚ÉXMLƒ^ƒOî•ñ‚ğo—Í‚·‚é
+        'ä¸Šè¨˜æƒ…å ±ã‚’ã‚‚ã¨ã«XMLã‚¿ã‚°æƒ…å ±ã‚’å‡ºåŠ›ã™ã‚‹
         Select Case ThisWorkbook.Sheets("Menu").Cells(1, 7)
-        Case "’Pˆê"
-            '*** ’PˆêƒƒCƒ“ƒJƒeƒSƒŠŒ`® ***
+        Case "å˜ä¸€"
+            '*** å˜ä¸€ãƒ¡ã‚¤ãƒ³ã‚«ãƒ†ã‚´ãƒªå½¢å¼ ***
             mainCategoryName = "@"
-            'mainCategoryŠÖ˜Aî•ñƒ^ƒOo—Í1
+            'mainCategoryé–¢é€£æƒ…å ±ã‚¿ã‚°å‡ºåŠ›1
             Set node(3) = node(2).appendChild(xmlDoc.createNode(NODE_ELEMENT, "dict", ""))
             Set node(4) = node(3).appendChild(xmlDoc.createNode(NODE_ELEMENT, "key", ""))
             node(4).Text = "items"
             Set node(4) = node(3).appendChild(xmlDoc.createNode(NODE_ELEMENT, "array", ""))
             
-            'subCategoryŠÖ˜Aî•ñƒ^ƒOo—Í
+            'subCategoryé–¢é€£æƒ…å ±ã‚¿ã‚°å‡ºåŠ›
             For j = startRow To maxRow
                 Set node(5) = node(4).appendChild(xmlDoc.createNode(NODE_ELEMENT, "dict", ""))
                 Set node(6) = node(5).appendChild(xmlDoc.createNode(NODE_ELEMENT, "key", ""))
                 node(6).Text = "countStoredImages"
                 Set node(6) = node(5).appendChild(xmlDoc.createNode(NODE_ELEMENT, "integer", ""))
-                node(6).Text = "0"  'ƒfƒtƒHƒ‹ƒg’l
+                node(6).Text = "0"  'ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆå€¤
                 Set node(6) = node(5).appendChild(xmlDoc.createNode(NODE_ELEMENT, "key", ""))
                 node(6).Text = "images"
                 Set node(6) = node(5).appendChild(xmlDoc.createNode(NODE_ELEMENT, "array", ""))
                 Set node(6) = node(5).appendChild(xmlDoc.createNode(NODE_ELEMENT, "key", ""))
                 node(6).Text = "subCategory"
                 Set node(6) = node(5).appendChild(xmlDoc.createNode(NODE_ELEMENT, "string", ""))
-                node(6).Text = .Cells(j, eqNoClm) & ":=-,-,-"   'ƒTƒuƒJƒeƒSƒŠ–¼
+                node(6).Text = .Cells(j, eqNoClm) & ":=-,-,-"   'ã‚µãƒ–ã‚«ãƒ†ã‚´ãƒªå
             Next j
         
-            'mainCategoryŠÖ˜Aî•ñƒ^ƒOo—Í2
+            'mainCategoryé–¢é€£æƒ…å ±ã‚¿ã‚°å‡ºåŠ›2
             Set node(4) = node(3).appendChild(xmlDoc.createNode(NODE_ELEMENT, "key", ""))
             node(4).Text = "mainCategory"
             Set node(4) = node(3).appendChild(xmlDoc.createNode(NODE_ELEMENT, "string", ""))
-            node(4).Text = mainCategoryName & ":=,," 'ƒƒCƒ“ƒJƒeƒSƒŠ–¼
+            node(4).Text = mainCategoryName & ":=,," 'ãƒ¡ã‚¤ãƒ³ã‚«ãƒ†ã‚´ãƒªå
             Set node(4) = node(3).appendChild(xmlDoc.createNode(NODE_ELEMENT, "key", ""))
             node(4).Text = "subFolderMode"
             Set node(4) = node(3).appendChild(xmlDoc.createNode(NODE_ELEMENT, "integer", ""))
-            node(4).Text = "0"  'ƒfƒtƒHƒ‹ƒg’l
+            node(4).Text = "0"  'ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆå€¤
                 
-        Case "•¡”"
-            '*** •¡”ƒƒCƒ“ƒJƒeƒSƒŠŒ`® ***
+        Case "è¤‡æ•°"
+            '*** è¤‡æ•°ãƒ¡ã‚¤ãƒ³ã‚«ãƒ†ã‚´ãƒªå½¢å¼ ***
             For i = startRow To maxRow
                 If .Cells(i, eqNoClm - 1) <> "" Then
                     mainCategoryName = "@-" & .Cells(i, eqNoClm - 1)
@@ -300,43 +300,43 @@ Sub createPlist(eqNoClm)
                         toRow = maxRow
                     End If
     
-                    'mainCategoryŠÖ˜Aî•ñƒ^ƒOo—Í1
+                    'mainCategoryé–¢é€£æƒ…å ±ã‚¿ã‚°å‡ºåŠ›1
                     Set node(3) = node(2).appendChild(xmlDoc.createNode(NODE_ELEMENT, "dict", ""))
                     Set node(4) = node(3).appendChild(xmlDoc.createNode(NODE_ELEMENT, "key", ""))
                     node(4).Text = "items"
                     Set node(4) = node(3).appendChild(xmlDoc.createNode(NODE_ELEMENT, "array", ""))
     
-                    'subCategoryŠÖ˜Aî•ñƒ^ƒOo—Í
+                    'subCategoryé–¢é€£æƒ…å ±ã‚¿ã‚°å‡ºåŠ›
                     For j = fromRow To toRow
                         Set node(5) = node(4).appendChild(xmlDoc.createNode(NODE_ELEMENT, "dict", ""))
                         Set node(6) = node(5).appendChild(xmlDoc.createNode(NODE_ELEMENT, "key", ""))
                         node(6).Text = "countStoredImages"
                         Set node(6) = node(5).appendChild(xmlDoc.createNode(NODE_ELEMENT, "integer", ""))
-                        node(6).Text = "0"  'ƒfƒtƒHƒ‹ƒg’l
+                        node(6).Text = "0"  'ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆå€¤
                         Set node(6) = node(5).appendChild(xmlDoc.createNode(NODE_ELEMENT, "key", ""))
                         node(6).Text = "images"
                         Set node(6) = node(5).appendChild(xmlDoc.createNode(NODE_ELEMENT, "array", ""))
                         Set node(6) = node(5).appendChild(xmlDoc.createNode(NODE_ELEMENT, "key", ""))
                         node(6).Text = "subCategory"
                         Set node(6) = node(5).appendChild(xmlDoc.createNode(NODE_ELEMENT, "string", ""))
-                        node(6).Text = .Cells(j, eqNoClm) & ":=-,-,-"   'ƒTƒuƒJƒeƒSƒŠ–¼
+                        node(6).Text = .Cells(j, eqNoClm) & ":=-,-,-"   'ã‚µãƒ–ã‚«ãƒ†ã‚´ãƒªå
                     Next j
     
-                    'mainCategoryŠÖ˜Aî•ñƒ^ƒOo—Í2
+                    'mainCategoryé–¢é€£æƒ…å ±ã‚¿ã‚°å‡ºåŠ›2
                     Set node(4) = node(3).appendChild(xmlDoc.createNode(NODE_ELEMENT, "key", ""))
                     node(4).Text = "mainCategory"
                     Set node(4) = node(3).appendChild(xmlDoc.createNode(NODE_ELEMENT, "string", ""))
-                    node(4).Text = mainCategoryName & ":=,," 'ƒƒCƒ“ƒJƒeƒSƒŠ–¼
+                    node(4).Text = mainCategoryName & ":=,," 'ãƒ¡ã‚¤ãƒ³ã‚«ãƒ†ã‚´ãƒªå
                     Set node(4) = node(3).appendChild(xmlDoc.createNode(NODE_ELEMENT, "key", ""))
                     node(4).Text = "subFolderMode"
                     Set node(4) = node(3).appendChild(xmlDoc.createNode(NODE_ELEMENT, "integer", ""))
-                    node(4).Text = "0"  'ƒfƒtƒHƒ‹ƒg’l
+                    node(4).Text = "0"  'ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆå€¤
                 End If
             Next i
         End Select
     End With
     
-    xmlDoc.Save (tempFile)  'ˆêƒtƒ@ƒCƒ‹•Û‘¶
+    xmlDoc.Save (tempFile)  'ä¸€æ™‚ãƒ•ã‚¡ã‚¤ãƒ«ä¿å­˜
     
     Dim inputSt As New ADODB.stream
     Dim outputSt As New ADODB.stream
@@ -371,13 +371,13 @@ Sub createPlist(eqNoClm)
     End With
     
     If Dir(tempFile) <> "" Then
-        Kill tempFile   'ˆêƒtƒ@ƒCƒ‹íœ
+        Kill tempFile   'ä¸€æ™‚ãƒ•ã‚¡ã‚¤ãƒ«å‰Šé™¤
     End If
     
 End Sub
 Sub createZip()
     '**********************************
-    '   ZIPƒtƒ@ƒCƒ‹V‹Kì¬ˆ—
+    '   ZIPãƒ•ã‚¡ã‚¤ãƒ«æ–°è¦ä½œæˆå‡¦ç†
     '
     '   Created by: Takashi Kawamoto
     '   Created on: 2023/9/8
@@ -388,37 +388,37 @@ Sub createZip()
     Dim toFolder
     Dim zipSrcFolder
 
-    'Masterƒf[ƒ^(Ê^)ƒtƒHƒ‹ƒ_
+    'Masterãƒ‡ãƒ¼ã‚¿(å†™çœŸ)ãƒ•ã‚©ãƒ«ãƒ€
     masterDir = ThisWorkbook.Path & "\Master\SampleList"
     
-    'Masterƒf[ƒ^ƒtƒHƒ‹ƒ_‚ª‚È‚¢ê‡‚ÍV‹Kì¬‚·‚é
+    'Masterãƒ‡ãƒ¼ã‚¿ãƒ•ã‚©ãƒ«ãƒ€ãŒãªã„å ´åˆã¯æ–°è¦ä½œæˆã™ã‚‹
     If Dir(masterDir, vbDirectory) = "" Then
         MkDir masterDir
     End If
     
-    '‘€ìà–¾‰æ‘œì¬
+    'æ“ä½œèª¬æ˜ç”»åƒä½œæˆ
     fileName = masterDir & "\@readme.jpg"
     
-    'JPGƒtƒ@ƒCƒ‹V‹Kì¬ˆ—
+    'JPGãƒ•ã‚¡ã‚¤ãƒ«æ–°è¦ä½œæˆå‡¦ç†
     Call createJPG(fileName)
 
-    'ZIPˆ³kƒtƒ@ƒCƒ‹‚Ì•Û‘¶æƒtƒHƒ‹ƒ_(Masterƒf[ƒ^ƒtƒHƒ‹ƒ_uSampleList\v‚Ìˆê‚Âã‚ÌŠK‘wƒtƒHƒ‹ƒ_)‚ğw’è‚·‚é
+    'ZIPåœ§ç¸®ãƒ•ã‚¡ã‚¤ãƒ«ã®ä¿å­˜å…ˆãƒ•ã‚©ãƒ«ãƒ€(ï¼Masterãƒ‡ãƒ¼ã‚¿ãƒ•ã‚©ãƒ«ãƒ€ã€ŒSampleList\ã€ã®ä¸€ã¤ä¸Šã®éšå±¤ãƒ•ã‚©ãƒ«ãƒ€)ã‚’æŒ‡å®šã™ã‚‹
     toFolder = Mid(masterDir, 1, InStrRev(masterDir, "\") - 1)
     
-    'ZIPˆ³k‚µ‚½‚¢ƒtƒHƒ‹ƒ_(=Masterƒf[ƒ^ƒtƒHƒ‹ƒ_)‚ğw’è‚·‚é
+    'ZIPåœ§ç¸®ã—ãŸã„ãƒ•ã‚©ãƒ«ãƒ€(=Masterãƒ‡ãƒ¼ã‚¿ãƒ•ã‚©ãƒ«ãƒ€)ã‚’æŒ‡å®šã™ã‚‹
     zipSrcFolder = masterDir
     
-    'ZIPˆ³k‚µ‚½‚¢ƒtƒHƒ‹ƒ_‚ª‘¶İ‚·‚éê‡‚Ì‚İAZIPˆ³k‚ğs‚¤
+    'ZIPåœ§ç¸®ã—ãŸã„ãƒ•ã‚©ãƒ«ãƒ€ãŒå­˜åœ¨ã™ã‚‹å ´åˆã®ã¿ã€ZIPåœ§ç¸®ã‚’è¡Œã†
     If Dir(zipSrcFolder, vbDirectory) <> "" Then
     
-        'ZIPˆ³kˆ—
+        'ZIPåœ§ç¸®å‡¦ç†
         Call ZipFileOrFolder2(zipSrcFolder)
     End If
 
 End Sub
 Sub createJPG(fName)
     '**********************************
-    '   JPGƒtƒ@ƒCƒ‹V‹Kì¬ˆ—
+    '   JPGãƒ•ã‚¡ã‚¤ãƒ«æ–°è¦ä½œæˆå‡¦ç†
     '
     '   Created by: Takashi Kawamoto
     '   Created on: 2023/9/8
@@ -428,13 +428,13 @@ Sub createJPG(fName)
     Dim cht As Chart
     Dim fileSize
     
-    '‘€ìà–¾ƒGƒŠƒAƒRƒs[
+    'æ“ä½œèª¬æ˜ã‚¨ãƒªã‚¢ã‚³ãƒ”ãƒ¼
     With ThisWorkbook.Sheets("Menu")
         Set rg = .Range(.Cells(50, 1), .Cells(100, 26))
     End With
     rg.CopyPicture
     
-    'ˆêƒf[ƒ^ì¬•‰æ‘œ“\‚è•t‚¯•JPGƒtƒ@ƒCƒ‹ƒGƒNƒXƒ|[ƒg
+    'ä¸€æ™‚ãƒ‡ãƒ¼ã‚¿ä½œæˆï¼†ç”»åƒè²¼ã‚Šä»˜ã‘ï¼†JPGãƒ•ã‚¡ã‚¤ãƒ«ã‚¨ã‚¯ã‚¹ãƒãƒ¼ãƒˆ
     Set cht = ThisWorkbook.Sheets("Menu").ChartObjects.Add(0, 0, rg.Width, rg.Height).Chart
     cht.Export fileName:=fName, filtername:="JPG"
     fileSize = FileLen(fName)
@@ -445,13 +445,13 @@ Sub createJPG(fName)
         DoEvents
     Loop
     
-    'ˆêƒf[ƒ^íœ
+    'ä¸€æ™‚ãƒ‡ãƒ¼ã‚¿å‰Šé™¤
     cht.Parent.Delete
 
 End Sub
 Sub editSampleID()
     '**********************************
-    '   ƒTƒ“ƒvƒ‹‹Æ–±”Ô†İ’èE•ÒW
+    '   ã‚µãƒ³ãƒ—ãƒ«æ¥­å‹™ç•ªå·è¨­å®šãƒ»ç·¨é›†
     '
     '   Created by: Takashi Kawamoto
     '   Created on: 2023/9/14
@@ -469,12 +469,12 @@ Sub editSampleID()
     Dim newFileName
     Dim newFilePath
 
-    'ƒTƒ“ƒvƒ‹‹Æ–±”Ô†“ü—Í(‰‰ñ‚Ì‚İ)
+    'ã‚µãƒ³ãƒ—ãƒ«æ¥­å‹™ç•ªå·å…¥åŠ›(åˆå›ã®ã¿)
     With ThisWorkbook.Sheets("SampleList")
         If .Cells(1, 1) = "" Then
-             strSID = InputBox("ƒTƒ“ƒvƒ‹‹Æ–±”Ô†H", , "EMCxx-xxxx")
+             strSID = InputBox("ã‚µãƒ³ãƒ—ãƒ«æ¥­å‹™ç•ªå·ï¼Ÿ", , "EMCxx-xxxx")
         Else
-             strSID = InputBox("ƒTƒ“ƒvƒ‹‹Æ–±”Ô†‚ğ•ÏX‚µ‚Ü‚·‚©H", , .Cells(1, 1))
+             strSID = InputBox("ã‚µãƒ³ãƒ—ãƒ«æ¥­å‹™ç•ªå·ã‚’å¤‰æ›´ã—ã¾ã™ã‹ï¼Ÿ", , .Cells(1, 1))
         End If
         If strSID <> "" Then
             .Cells(1, 1) = strSID
@@ -483,11 +483,11 @@ Sub editSampleID()
         End If
     End With
     
-    'yPLIST–¼zMasterƒf[ƒ^: SampleList.plist
+    'ã€PLISTåã€‘Masterãƒ‡ãƒ¼ã‚¿: SampleList.plist
     plistPath_master = ThisWorkbook.Path & "\Master\SampleList.plist"
     
-    'PLIST-Masterƒf[ƒ^“à‚ÌmainCategory–¼‚ğuƒTƒ“ƒvƒ‹‹Æ–±”Ô†v‚Åã‘‚«‚·‚é
-    tempFile = "c:\\temp\\temp.plist"   'ˆêƒtƒ@ƒCƒ‹
+    'PLIST-Masterãƒ‡ãƒ¼ã‚¿å†…ã®mainCategoryåã‚’ã€Œã‚µãƒ³ãƒ—ãƒ«æ¥­å‹™ç•ªå·ã€ã§ä¸Šæ›¸ãã™ã‚‹
+    tempFile = "c:\\temp\\temp.plist"   'ä¸€æ™‚ãƒ•ã‚¡ã‚¤ãƒ«
     FileCopy plistPath_master, tempFile
     
     Dim inputSt As New ADODB.stream
@@ -529,10 +529,10 @@ Sub editSampleID()
     End With
     
     If Dir(tempFile) <> "" Then
-        Kill tempFile   'ˆêƒtƒ@ƒCƒ‹íœ
+        Kill tempFile   'ä¸€æ™‚ãƒ•ã‚¡ã‚¤ãƒ«å‰Šé™¤
     End If
     
-    'Master(Excel)•Û‘¶
+    'Master(Excel)ä¿å­˜
     Set wb = ThisWorkbook
     If wb.ReadOnly = True Then
         oldFileName = ThisWorkbook.Name
@@ -544,19 +544,19 @@ Sub editSampleID()
             If Dir(ThisWorkbook.Path & "\old", vbDirectory) = "" Then
                 MkDir ThisWorkbook.Path & "\old"
             End If
-            Name oldFilePath As ThisWorkbook.Path & "\old\y‹Œz" & oldFileName
+            Name oldFilePath As ThisWorkbook.Path & "\old\ã€æ—§ã€‘" & oldFileName
         End If
-        MsgBox ("Master(Excel)ƒtƒ@ƒCƒ‹‚ª“Ç‚İæ‚èê—p‚Ì‚½‚ß•Ê–¼‚Å•Û‘¶‚µ‚Ü‚µ‚½" & Chr(10) & newFileName)
+        MsgBox ("Master(Excel)ãƒ•ã‚¡ã‚¤ãƒ«ãŒèª­ã¿å–ã‚Šå°‚ç”¨ã®ãŸã‚åˆ¥åã§ä¿å­˜ã—ã¾ã—ãŸ" & Chr(10) & newFileName)
     Else
         ThisWorkbook.Save
     End If
     
-    'ˆ—I—¹
-    MsgBox ("ƒTƒ“ƒvƒ‹‹Æ–±”Ô†”½‰fŠ®—¹")
+    'å‡¦ç†çµ‚äº†
+    MsgBox ("ã‚µãƒ³ãƒ—ãƒ«æ¥­å‹™ç•ªå·åæ˜ å®Œäº†")
 End Sub
 Sub createCarryOutData()
     '**********************************
-    '   ƒnƒ“ƒfƒBoƒf[ƒ^ì¬
+    '   ãƒãƒ³ãƒ‡ã‚£æŒå‡ºãƒ‡ãƒ¼ã‚¿ä½œæˆ
     '
     '   Created by: Takashi Kawamoto
     '   Created on: 2023/9/6
@@ -593,7 +593,7 @@ Sub createCarryOutData()
     Dim cntRow
     Dim matchRow
     
-    'ƒTƒ“ƒvƒ‹‹Æ–±”Ô†“ü—Í(‰‰ñ‚Ì‚İ)
+    'ã‚µãƒ³ãƒ—ãƒ«æ¥­å‹™ç•ªå·å…¥åŠ›(åˆå›ã®ã¿)
     With ThisWorkbook.Sheets("SampleList")
         If .Cells(1, 1) = "" Then
             Call editSampleID
@@ -601,36 +601,36 @@ Sub createCarryOutData()
         strSID = .Cells(1, 1)
     End With
     
-    '“ú•t“ü—Íƒf[ƒ^æ“¾
-    strDate = InputBox("“ú•tyymmddH", , Format(Date, "yymmdd"))
+    'æ—¥ä»˜å…¥åŠ›ãƒ‡ãƒ¼ã‚¿å–å¾—
+    strDate = InputBox("æ—¥ä»˜yymmddï¼Ÿ", , Format(Date, "yymmdd"))
     If strDate = "" Then
         Exit Sub
     End If
     
-    'İ”õ“ü—Íƒf[ƒ^æ“¾
-    strTestRoomNo = InputBox("İ”õ–¼H", , "ALCx")
+    'è¨­å‚™å…¥åŠ›ãƒ‡ãƒ¼ã‚¿å–å¾—
+    strTestRoomNo = InputBox("è¨­å‚™åï¼Ÿ", , "ALCx")
     If strTestRoomNo = "" Then
         Exit Sub
     End If
     
-    'oƒf[ƒ^–¼FSampleList_u“ú•tv_uİ”õ–¼v.plist
+    'æŒå‡ºãƒ‡ãƒ¼ã‚¿åï¼šSampleList_ã€Œæ—¥ä»˜ã€_ã€Œè¨­å‚™åã€.plist
     fileName = ThisWorkbook.Sheets("Menu").Cells(1, 3) & "_" & strDate & "_" & strTestRoomNo
     
-    'yPLIST–¼zMasterƒf[ƒ^: SampleList.plist
+    'ã€PLISTåã€‘Masterãƒ‡ãƒ¼ã‚¿: SampleList.plist
     plistPath_target = ThisWorkbook.Path & "\" & fileName & ".plist"
     plistPath_master = ThisWorkbook.Path & "\Master\SampleList.plist"
     
-    'yZIPƒtƒ@ƒCƒ‹–¼zMasterƒf[ƒ^: SampleLost.zip
+    'ã€ZIPãƒ•ã‚¡ã‚¤ãƒ«åã€‘Masterãƒ‡ãƒ¼ã‚¿: SampleLost.zip
     zipPath_target = ThisWorkbook.Path & "\" & fileName & ".zip"
     zipPath_master = ThisWorkbook.Path & "\Master\SampleList.zip"
     
-    'yZIP‘ÎÛƒtƒHƒ‹ƒ_–¼zMasterƒf[ƒ^: SampleLost\
+    'ã€ZIPå¯¾è±¡ãƒ•ã‚©ãƒ«ãƒ€åã€‘Masterãƒ‡ãƒ¼ã‚¿: SampleLost\
     folderPath_target = ThisWorkbook.Path & "\" & fileName
     folderPath_master = ThisWorkbook.Path & "\Master\SampleList\"
     folderPath_master2 = ThisWorkbook.Path & "\Master\SampleList"
     
-    'y’Ç‰Áˆ—zPLIST-Masterƒf[ƒ^“à‚ÌmainCategory–¼‚ğuƒTƒ“ƒvƒ‹‹Æ–±”Ô†v‚É’u‚«Š·‚¦‚é
-    tempFile = "c:\\temp\\temp.plist"   'ˆêƒtƒ@ƒCƒ‹
+    'ã€è¿½åŠ å‡¦ç†ã€‘PLIST-Masterãƒ‡ãƒ¼ã‚¿å†…ã®mainCategoryåã‚’ã€Œã‚µãƒ³ãƒ—ãƒ«æ¥­å‹™ç•ªå·ã€ã«ç½®ãæ›ãˆã‚‹
+    tempFile = "c:\\temp\\temp.plist"   'ä¸€æ™‚ãƒ•ã‚¡ã‚¤ãƒ«
     FileCopy plistPath_master, tempFile
     
     Dim inputSt As New ADODB.stream
@@ -665,29 +665,29 @@ Sub createCarryOutData()
     End With
     
     If Dir(tempFile) <> "" Then
-        Kill tempFile   'ˆêƒtƒ@ƒCƒ‹íœ
+        Kill tempFile   'ä¸€æ™‚ãƒ•ã‚¡ã‚¤ãƒ«å‰Šé™¤
     End If
     
-    'zipƒtƒ@ƒCƒ‹‚ª‚ ‚éê‡AuzipvMasterƒf[ƒ^‚Æu.plistvMasterƒf[ƒ^‚ğƒRƒs[‚µ‚Äoƒf[ƒ^‚ğì¬‚·‚é
+    'zipãƒ•ã‚¡ã‚¤ãƒ«ãŒã‚ã‚‹å ´åˆã€ã€Œzipã€Masterãƒ‡ãƒ¼ã‚¿ã¨ã€Œ.plistã€Masterãƒ‡ãƒ¼ã‚¿ã‚’ã‚³ãƒ”ãƒ¼ã—ã¦æŒå‡ºãƒ‡ãƒ¼ã‚¿ã‚’ä½œæˆã™ã‚‹
     If Dir(zipPath_master) <> "" Then
    
-        'Šù‘¶ƒtƒ@ƒCƒ‹‚ª‚È‚¢ê‡
+        'æ—¢å­˜ãƒ•ã‚¡ã‚¤ãƒ«ãŒãªã„å ´åˆ
         If Dir(zipPath_target) = "" And Dir(plistPath_target) = "" Then
             
-            'u.plistv‚ğƒRƒs[
+            'ã€Œ.plistã€ã‚’ã‚³ãƒ”ãƒ¼
             FileCopy plistPath_master, plistPath_target
             
-            'zipƒtƒ@ƒCƒ‹‰ğ“€ˆ—
+            'zipãƒ•ã‚¡ã‚¤ãƒ«è§£å‡å‡¦ç†
             Call unzipFile(plistPath_master)
             
-            '‰ğ“€ƒtƒHƒ‹ƒ_ƒŠƒl[ƒ€ & zip‘ÎÛƒtƒHƒ‹ƒ_ˆ³k
+            'è§£å‡ãƒ•ã‚©ãƒ«ãƒ€ãƒªãƒãƒ¼ãƒ  & zipå¯¾è±¡ãƒ•ã‚©ãƒ«ãƒ€åœ§ç¸®
             If Dir(folderPath_target, vbDirectory) <> "" Then
                 With CreateObject("Scripting.FileSystemObject")
                     .DeleteFolder folderPath_target
                 End With
             End If
             
-            'TargetƒtƒHƒ‹ƒ_‚ª‚È‚¢ê‡‚ÍV‹Kì¬‚·‚é
+            'Targetãƒ•ã‚©ãƒ«ãƒ€ãŒãªã„å ´åˆã¯æ–°è¦ä½œæˆã™ã‚‹
             If Dir(folderPath_target, vbDirectory) = "" Then
                 MkDir folderPath_target
             End If
@@ -695,39 +695,39 @@ Sub createCarryOutData()
             FSO.CopyFolder folderPath_master2, folderPath_target
             Set FSO = Nothing
             
-            'zipˆ³kˆ—
+            'zipåœ§ç¸®å‡¦ç†
             Call ZipFileOrFolder(folderPath_target)
             
-            '‰ğ“€ƒtƒHƒ‹ƒ_íœ(ƒtƒHƒ‹ƒ_‚ª‘¶İ‚·‚éê‡‚Ì‚İ)
+            'è§£å‡ãƒ•ã‚©ãƒ«ãƒ€å‰Šé™¤(ãƒ•ã‚©ãƒ«ãƒ€ãŒå­˜åœ¨ã™ã‚‹å ´åˆã®ã¿)
             If Dir(folderPath_target, vbDirectory) <> "" Then
                 With CreateObject("Scripting.FileSystemObject")
                     .DeleteFolder folderPath_target
                 End With
             End If
         
-        'Šù‘¶ƒtƒ@ƒCƒ‹‚ª‚ ‚éê‡
+        'æ—¢å­˜ãƒ•ã‚¡ã‚¤ãƒ«ãŒã‚ã‚‹å ´åˆ
         Else
         
-            'Šm”FƒƒbƒZ[ƒW•\¦
-            strYN = MsgBox("ˆÈ‰º‚Ìƒtƒ@ƒCƒ‹‚ğã‘‚«‚µ‚Ü‚·‚©H" & Chr(10) & plistPath_target & Chr(10) & zipPath_target, vbYesNo)
+            'ç¢ºèªãƒ¡ãƒƒã‚»ãƒ¼ã‚¸è¡¨ç¤º
+            strYN = MsgBox("ä»¥ä¸‹ã®ãƒ•ã‚¡ã‚¤ãƒ«ã‚’ä¸Šæ›¸ãã—ã¾ã™ã‹ï¼Ÿ" & Chr(10) & plistPath_target & Chr(10) & zipPath_target, vbYesNo)
             
-            'uYesv‚Ìê‡
+            'ã€ŒYesã€ã®å ´åˆ
             If strYN = vbYes Then
             
-                'u.plistv‚ğƒRƒs[
+                'ã€Œ.plistã€ã‚’ã‚³ãƒ”ãƒ¼
                 FileCopy plistPath_master, plistPath_target
                 
-                'zipƒtƒ@ƒCƒ‹‰ğ“€ˆ—
+                'zipãƒ•ã‚¡ã‚¤ãƒ«è§£å‡å‡¦ç†
                 Call unzipFile(plistPath_master)
                 
-                '‰ğ“€ƒtƒHƒ‹ƒ_ƒŠƒl[ƒ€ & zip‘ÎÛƒtƒHƒ‹ƒ_ˆ³k
+                'è§£å‡ãƒ•ã‚©ãƒ«ãƒ€ãƒªãƒãƒ¼ãƒ  & zipå¯¾è±¡ãƒ•ã‚©ãƒ«ãƒ€åœ§ç¸®
                 If Dir(folderPath_target, vbDirectory) <> "" Then
                     With CreateObject("Scripting.FileSystemObject")
                         .DeleteFolder folderPath_target
                     End With
                 End If
                 
-                'TargetƒtƒHƒ‹ƒ_‚ª‚È‚¢ê‡‚ÍV‹Kì¬‚·‚é
+                'Targetãƒ•ã‚©ãƒ«ãƒ€ãŒãªã„å ´åˆã¯æ–°è¦ä½œæˆã™ã‚‹
                 If Dir(folderPath_target, vbDirectory) = "" Then
                     MkDir folderPath_target
                 End If
@@ -736,38 +736,38 @@ Sub createCarryOutData()
                 FSO.CopyFolder folderPath_master2, folderPath_target
                 Set FSO = Nothing
                 
-                'zipˆ³kˆ—
+                'zipåœ§ç¸®å‡¦ç†
                 Call ZipFileOrFolder(folderPath_target)
                 
-                '‰ğ“€ƒtƒHƒ‹ƒ_íœ(ƒtƒHƒ‹ƒ_‚ª‘¶İ‚·‚éê‡‚Ì‚İ)
+                'è§£å‡ãƒ•ã‚©ãƒ«ãƒ€å‰Šé™¤(ãƒ•ã‚©ãƒ«ãƒ€ãŒå­˜åœ¨ã™ã‚‹å ´åˆã®ã¿)
                 If Dir(folderPath_target, vbDirectory) <> "" Then
                     With CreateObject("Scripting.FileSystemObject")
                         .DeleteFolder folderPath_target
                     End With
                 End If
                 
-            'uNov‚Ìê‡
+            'ã€ŒNoã€ã®å ´åˆ
             Else
-                MsgBox ("ˆ—‚ğ’†~‚µ‚Ü‚·")
+                MsgBox ("å‡¦ç†ã‚’ä¸­æ­¢ã—ã¾ã™")
                 Exit Sub
             End If
             
         End If
         
-        'oƒf[ƒ^‚Ìƒ`ƒFƒbƒNƒ{ƒbƒNƒXî•ñ‚ğw’èŒ±€–Ú‚Ì‚İ‚ÉXV‚·‚é
+        'æŒå‡ºãƒ‡ãƒ¼ã‚¿ã®ãƒã‚§ãƒƒã‚¯ãƒœãƒƒã‚¯ã‚¹æƒ…å ±ã‚’æŒ‡å®šè©¦é¨“é …ç›®ã®ã¿ã«æ›´æ–°ã™ã‚‹
         With ThisWorkbook.Sheets("wk_Eno")
-            .Cells(1, 3) = plistPath_target  'oƒf[ƒ^‚ÌƒtƒHƒ‹ƒ_ƒpƒX‚ğw’è
+            .Cells(1, 3) = plistPath_target  'æŒå‡ºãƒ‡ãƒ¼ã‚¿ã®ãƒ•ã‚©ãƒ«ãƒ€ãƒ‘ã‚¹ã‚’æŒ‡å®š
         End With
         
-        'PLISTƒf[ƒ^“Çˆ—
+        'PLISTãƒ‡ãƒ¼ã‚¿èª­è¾¼å‡¦ç†
         Call loadPlist(20, 1)
         
-    'zipƒtƒ@ƒCƒ‹‚ª‚È‚¢ê‡Au.plistvMasterƒf[ƒ^‚ğƒRƒs[‚µ‚Äoƒf[ƒ^‚ğì¬‚·‚é
+    'zipãƒ•ã‚¡ã‚¤ãƒ«ãŒãªã„å ´åˆã€ã€Œ.plistã€Masterãƒ‡ãƒ¼ã‚¿ã‚’ã‚³ãƒ”ãƒ¼ã—ã¦æŒå‡ºãƒ‡ãƒ¼ã‚¿ã‚’ä½œæˆã™ã‚‹
     Else
         FileCopy plistPath_master, plistPath_target
     End If
     
-    'Master(Excel)•Û‘¶
+    'Master(Excel)ä¿å­˜
     Set wb = ThisWorkbook
     If wb.ReadOnly = True Then
         oldFileName = ThisWorkbook.Name
@@ -779,19 +779,19 @@ Sub createCarryOutData()
             If Dir(ThisWorkbook.Path & "\old", vbDirectory) = "" Then
                 MkDir ThisWorkbook.Path & "\old"
             End If
-            Name oldFilePath As ThisWorkbook.Path & "\old\y‹Œz" & oldFileName
+            Name oldFilePath As ThisWorkbook.Path & "\old\ã€æ—§ã€‘" & oldFileName
         End If
-        MsgBox ("Master(Excel)ƒtƒ@ƒCƒ‹‚ª“Ç‚İæ‚èê—p‚Ì‚½‚ß•Ê–¼‚Å•Û‘¶‚µ‚Ü‚µ‚½" & Chr(10) & newFileName)
+        MsgBox ("Master(Excel)ãƒ•ã‚¡ã‚¤ãƒ«ãŒèª­ã¿å–ã‚Šå°‚ç”¨ã®ãŸã‚åˆ¥åã§ä¿å­˜ã—ã¾ã—ãŸ" & Chr(10) & newFileName)
     Else
         ThisWorkbook.Save
     End If
 
-    'I—¹ˆ—
-    MsgBox ("oƒf[ƒ^o—ÍŠ®—¹")
+    'çµ‚äº†å‡¦ç†
+    MsgBox ("æŒå‡ºãƒ‡ãƒ¼ã‚¿å‡ºåŠ›å®Œäº†")
 End Sub
 Sub applyCarryInData()
     '**********************************
-    '   ƒnƒ“ƒfƒBƒf[ƒ^ˆ—
+    '   ãƒãƒ³ãƒ‡ã‚£æŒè¾¼ãƒ‡ãƒ¼ã‚¿å‡¦ç†
     '
     '   Created by: Takashi Kawamoto
     '   Created on: 2023/9/6
@@ -811,79 +811,79 @@ Sub applyCarryInData()
     Dim oldFilePath, newFilePath
     Dim carryInFileName
     
-    plistPath_master = ThisWorkbook.Path & "\Master\SampleList.plist"         '‰‰ñPLIST-Masterƒf[ƒ^(.plist)
+    plistPath_master = ThisWorkbook.Path & "\Master\SampleList.plist"         'åˆå›PLIST-Masterãƒ‡ãƒ¼ã‚¿(.plist)
     
-    'PLIST-ƒf[ƒ^“Çˆ—
+    'PLIST-æŒè¾¼ãƒ‡ãƒ¼ã‚¿èª­è¾¼å‡¦ç†
     startRow = 20
     startColumn = 5
     isMaster = False
     
-    'w¦ƒƒbƒZ[ƒW•\¦
-    MsgBox ("ƒf[ƒ^‚ğw’è‚µ‚Ä‚­‚¾‚³‚¢")
+    'æŒ‡ç¤ºãƒ¡ãƒƒã‚»ãƒ¼ã‚¸è¡¨ç¤º
+    MsgBox ("æŒè¾¼ãƒ‡ãƒ¼ã‚¿ã‚’æŒ‡å®šã—ã¦ãã ã•ã„")
     
-    'ƒtƒ@ƒCƒ‹‘I‘ğƒ_ƒCƒAƒƒO•\¦
+    'ãƒ•ã‚¡ã‚¤ãƒ«é¸æŠãƒ€ã‚¤ã‚¢ãƒ­ã‚°è¡¨ç¤º
     Call selectFile(startRow, startColumn, isMaster)
     
-    '‘I‘ğƒtƒ@ƒCƒ‹‚ª‚È‚¢ê‡Aˆ—‚ğI—¹‚·‚é
+    'é¸æŠãƒ•ã‚¡ã‚¤ãƒ«ãŒãªã„å ´åˆã€å‡¦ç†ã‚’çµ‚äº†ã™ã‚‹
     If ThisWorkbook.Sheets("wk_Eno").Cells(1, startColumn + 2) = "" Then
         Exit Sub
     End If
     
-    'w’è‚µ‚½ƒf[ƒ^‚ªMaster(Excel)ƒtƒ@ƒCƒ‹‚Æ“¯ˆêƒtƒHƒ‹ƒ_“à‚É‘¶İ‚µ‚È‚¢ê‡Aˆ—‚ğI—¹‚·‚é
+    'æŒ‡å®šã—ãŸæŒè¾¼ãƒ‡ãƒ¼ã‚¿ãŒMaster(Excel)ãƒ•ã‚¡ã‚¤ãƒ«ã¨åŒä¸€ãƒ•ã‚©ãƒ«ãƒ€å†…ã«å­˜åœ¨ã—ãªã„å ´åˆã€å‡¦ç†ã‚’çµ‚äº†ã™ã‚‹
     If Left(ThisWorkbook.Sheets("wk_Eno").Cells(1, startColumn + 2), InStrRev(ThisWorkbook.Sheets("wk_Eno").Cells(1, startColumn + 2), "\") - 1) <> ThisWorkbook.Path Then
-        MsgBox ("ƒf[ƒ^‚ÍMaster(Excel)ƒtƒ@ƒCƒ‹‚Æ“¯‚¶ƒtƒHƒ‹ƒ_“à‚Ì‚à‚Ì‚ğw’è‚µ‚Ä‚­‚¾‚³‚¢" & Chr(10) & "Master(Excel)ƒtƒ@ƒCƒ‹êŠ: " & ThisWorkbook.Path)
+        MsgBox ("æŒè¾¼ãƒ‡ãƒ¼ã‚¿ã¯Master(Excel)ãƒ•ã‚¡ã‚¤ãƒ«ã¨åŒã˜ãƒ•ã‚©ãƒ«ãƒ€å†…ã®ã‚‚ã®ã‚’æŒ‡å®šã—ã¦ãã ã•ã„" & Chr(10) & "Master(Excel)ãƒ•ã‚¡ã‚¤ãƒ«å ´æ‰€: " & ThisWorkbook.Path)
         Exit Sub
     End If
     
-    'PLIST-ƒf[ƒ^“Çˆ—
+    'PLIST-æŒè¾¼ãƒ‡ãƒ¼ã‚¿èª­è¾¼å‡¦ç†
     Call loadPlist(startRow, startColumn)
     
-    'y’Ç‰ÁzPLIST-ƒf[ƒ^-ƒTƒ“ƒvƒ‹‹Æ–±”Ô†ƒ`ƒFƒbƒN
+    'ã€è¿½åŠ ã€‘PLIST-æŒè¾¼ãƒ‡ãƒ¼ã‚¿-ã‚µãƒ³ãƒ—ãƒ«æ¥­å‹™ç•ªå·ãƒã‚§ãƒƒã‚¯
     If InStr(ThisWorkbook.Sheets("wk_Eno").Cells(startRow, 7), ThisWorkbook.Sheets("SampleList").Cells(1, 1)) = 0 Then
-        MsgBox ("ƒf[ƒ^‚ÌƒTƒ“ƒvƒ‹‹Æ–±”Ô†‚ªˆê’v‚µ‚Ü‚¹‚ñBˆ—‚ğ’†~‚µ‚Ü‚·B")
+        MsgBox ("æŒè¾¼ãƒ‡ãƒ¼ã‚¿ã®ã‚µãƒ³ãƒ—ãƒ«æ¥­å‹™ç•ªå·ãŒä¸€è‡´ã—ã¾ã›ã‚“ã€‚å‡¦ç†ã‚’ä¸­æ­¢ã—ã¾ã™ã€‚")
         Exit Sub
     End If
     
-    'PLIST-ƒf[ƒ^-ŠÇ—í—Şƒ`ƒFƒbƒN
+    'PLIST-æŒè¾¼ãƒ‡ãƒ¼ã‚¿-ç®¡ç†ç¨®é¡ãƒã‚§ãƒƒã‚¯
     carryInFileName = Mid(ThisWorkbook.Sheets("wk_Eno").Cells(1, startColumn + 2), InStrRev(ThisWorkbook.Sheets("wk_Eno").Cells(1, startColumn + 2), "\") + 1)
     If InStr(ThisWorkbook.Sheets("wk_Eno").Cells(1, startColumn + 2), ThisWorkbook.Sheets("Menu").Cells(1, 3)) = 0 Then
-        MsgBox ("ƒf[ƒ^‚ÌŠÇ—í—Ş(InOutMgr/EqpMgr)‚ªˆê’v‚µ‚Ü‚¹‚ñBˆ—‚ğ’†~‚µ‚Ü‚·B" & Chr(10) & _
-        "ƒf[ƒ^: " & Left(carryInFileName, InStr(carryInFileName, "Mgr_") + 2) & Chr(10) & _
+        MsgBox ("æŒè¾¼ãƒ‡ãƒ¼ã‚¿ã®ç®¡ç†ç¨®é¡(InOutMgr/EqpMgr)ãŒä¸€è‡´ã—ã¾ã›ã‚“ã€‚å‡¦ç†ã‚’ä¸­æ­¢ã—ã¾ã™ã€‚" & Chr(10) & _
+        "æŒè¾¼ãƒ‡ãƒ¼ã‚¿: " & Left(carryInFileName, InStr(carryInFileName, "Mgr_") + 2) & Chr(10) & _
         "Master: " & ThisWorkbook.Sheets("Menu").Cells(1, 3))
         Exit Sub
     End If
     
-    'Masterƒf[ƒ^“Ç
+    'Masterãƒ‡ãƒ¼ã‚¿èª­è¾¼
     ThisWorkbook.Sheets("wk_Eno").Cells(1, 3) = plistPath_master
         
-    'PLIST-Masterƒf[ƒ^“Çˆ—
+    'PLIST-Masterãƒ‡ãƒ¼ã‚¿èª­è¾¼å‡¦ç†
     startRow = 20
     startColumn = 1
     Call loadPlist(startRow, startColumn)
     
-    'ZIP-Masterƒf[ƒ^‰ğ“€ˆ—
+    'ZIP-Masterãƒ‡ãƒ¼ã‚¿è§£å‡å‡¦ç†
     Call unzipFileMaster
     
-    'PLIST-Master-ƒf[ƒ^”äŠrˆ—
+    'PLIST-Master-æŒè¾¼ãƒ‡ãƒ¼ã‚¿æ¯”è¼ƒå‡¦ç†
     Call comparePlist
     
-    'ZIP-ƒf[ƒ^‰ğ“€ˆ—
+    'ZIP-æŒè¾¼ãƒ‡ãƒ¼ã‚¿è§£å‡å‡¦ç†
     Call unzipFileUpdated
     
-    'PLIST‰¼ƒ}[ƒWˆ—
+    'PLISTä»®ãƒãƒ¼ã‚¸å‡¦ç†
     Call mergePlist
     
-    'PLIST•ZIPXV”½‰fˆ—
+    'PLISTï¼†ZIPæ›´æ–°åæ˜ å‡¦ç†
     Call applyPlistAndZip
 
-    'Master(Excel)XV”½‰fˆ—
+    'Master(Excel)æ›´æ–°åæ˜ å‡¦ç†
     Call applySampleList
        
-    'ƒf[ƒ^‰ğ“€ƒtƒHƒ‹ƒ_íœ(ƒtƒHƒ‹ƒ_‚ª‘¶İ‚·‚éê‡‚Ì‚İ)
+    'æŒè¾¼ãƒ‡ãƒ¼ã‚¿è§£å‡ãƒ•ã‚©ãƒ«ãƒ€å‰Šé™¤(ãƒ•ã‚©ãƒ«ãƒ€ãŒå­˜åœ¨ã™ã‚‹å ´åˆã®ã¿)
     folderPath_target = Replace(ThisWorkbook.Sheets("wk_Eno").Cells(1, 7), ".plist", "")
     folderPath_master = ThisWorkbook.Path & "\Master\SampleList"
     
-    'ƒf[ƒ^–¼‚ªMasterƒf[ƒ^–¼‚ÆˆÙ‚È‚éê‡‚Ì‚İˆ—‚·‚é
+    'æŒè¾¼ãƒ‡ãƒ¼ã‚¿åãŒMasterãƒ‡ãƒ¼ã‚¿åã¨ç•°ãªã‚‹å ´åˆã®ã¿å‡¦ç†ã™ã‚‹
     If folderPath_target <> folderPath_master Then
         If Dir(folderPath_target, vbDirectory) <> "" Then
             With CreateObject("Scripting.FileSystemObject")
@@ -892,24 +892,24 @@ Sub applyCarryInData()
         End If
     End If
     
-    'uSampleListvƒtƒHƒ‹ƒ_‚ÍAMaster(Excel)“à‚ÌŠeƒTƒ€ƒlƒCƒ‹Ê^‚É‚»‚ê‚¼‚êƒŠƒ“ƒN‚³‚ê‚½Œ³Ê^‚ª•Û‘¶‚³‚ê‚Ä‚¢‚é‚½‚ßíœ‚µ‚È‚¢
+    'ã€ŒSampleListã€ãƒ•ã‚©ãƒ«ãƒ€ã¯ã€Master(Excel)å†…ã®å„ã‚µãƒ ãƒã‚¤ãƒ«å†™çœŸã«ãã‚Œãã‚Œãƒªãƒ³ã‚¯ã•ã‚ŒãŸå…ƒå†™çœŸãŒä¿å­˜ã•ã‚Œã¦ã„ã‚‹ãŸã‚å‰Šé™¤ã—ãªã„
 '    If Dir(folderPath_master, vbDirectory) <> "" Then
 '        With CreateObject("Scripting.FileSystemObject")
 '            .DeleteFolder folderPath_master
 '        End With
 '    End If
 
-    'ƒf[ƒ^íœ(ƒtƒ@ƒCƒ‹‚ª‘¶İ‚·‚éê‡‚Ì‚İ)
+    'æŒè¾¼ãƒ‡ãƒ¼ã‚¿å‰Šé™¤(ãƒ•ã‚¡ã‚¤ãƒ«ãŒå­˜åœ¨ã™ã‚‹å ´åˆã®ã¿)
     plistPath_target = ThisWorkbook.Sheets("wk_Eno").Cells(1, 7)
     zipPath_target = Replace(ThisWorkbook.Sheets("wk_Eno").Cells(1, 7), ".plist", ".zip")
     
-    'ƒf[ƒ^–¼‚ªMasterƒf[ƒ^–¼‚ÆˆÙ‚È‚éê‡‚Ì‚İˆ—‚·‚é
+    'æŒè¾¼ãƒ‡ãƒ¼ã‚¿åãŒMasterãƒ‡ãƒ¼ã‚¿åã¨ç•°ãªã‚‹å ´åˆã®ã¿å‡¦ç†ã™ã‚‹
     If plistPath_target <> plistPath_master Then
     
-        'Šm”FƒƒbƒZ[ƒW•\¦
-        res = MsgBox("ƒf[ƒ^‚ğíœ‚µ‚Ü‚·‚©H" & Chr(10) & plistPath_target & Chr(10) & zipPath_target, vbYesNo)
+        'ç¢ºèªãƒ¡ãƒƒã‚»ãƒ¼ã‚¸è¡¨ç¤º
+        res = MsgBox("æŒè¾¼ãƒ‡ãƒ¼ã‚¿ã‚’å‰Šé™¤ã—ã¾ã™ã‹ï¼Ÿ" & Chr(10) & plistPath_target & Chr(10) & zipPath_target, vbYesNo)
         
-        'uYesv‚Ìê‡
+        'ã€ŒYesã€ã®å ´åˆ
         If res = vbYes Then
             If Dir(plistPath_target) <> "" Then
                 Kill plistPath_target    '.plist
@@ -920,7 +920,7 @@ Sub applyCarryInData()
         End If
     End If
     
-    'Master(Excel)•Û‘¶
+    'Master(Excel)ä¿å­˜
     Set wb = ThisWorkbook
     If wb.ReadOnly = True Then
         oldFileName = ThisWorkbook.Name
@@ -932,15 +932,15 @@ Sub applyCarryInData()
             If Dir(ThisWorkbook.Path & "\old", vbDirectory) = "" Then
                 MkDir ThisWorkbook.Path & "\old"
             End If
-            Name oldFilePath As ThisWorkbook.Path & "\old\y‹Œz" & oldFileName
+            Name oldFilePath As ThisWorkbook.Path & "\old\ã€æ—§ã€‘" & oldFileName
         End If
-        MsgBox ("Master(Excel)ƒtƒ@ƒCƒ‹‚ª“Ç‚İæ‚èê—p‚Ì‚½‚ß•Ê–¼‚Å•Û‘¶‚µ‚Ü‚µ‚½" & Chr(10) & newFileName)
+        MsgBox ("Master(Excel)ãƒ•ã‚¡ã‚¤ãƒ«ãŒèª­ã¿å–ã‚Šå°‚ç”¨ã®ãŸã‚åˆ¥åã§ä¿å­˜ã—ã¾ã—ãŸ" & Chr(10) & newFileName)
     Else
         ThisWorkbook.Save
     End If
     
-    'I—¹ˆ—
-    MsgBox ("ƒf[ƒ^ˆ—Š®—¹")
+    'çµ‚äº†å‡¦ç†
+    MsgBox ("æŒè¾¼ãƒ‡ãƒ¼ã‚¿å‡¦ç†å®Œäº†")
 End Sub
 
 
