@@ -1,18 +1,19 @@
 VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} ChangeEqNoForm 
-   Caption         =   "�@��ԍ��̌n�ύX���"
+   Caption         =   "機器番号体系変更画面"
    ClientHeight    =   3015
    ClientLeft      =   120
    ClientTop       =   465
    ClientWidth     =   4560
    OleObjectBlob   =   "ChangeEqNoForm.frx":0000
-   StartUpPosition =   1  '�I�[�i�[ �t�H�[���̒���
+   StartUpPosition =   1  'オーナー フォームの中央
 End
 Attribute VB_Name = "ChangeEqNoForm"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
+
 Option Explicit
 Dim tb1_initial_value, tb2_initial_value, tb3_initial_value
 
@@ -32,7 +33,7 @@ Private Sub CommandButton1_Click()
     With ThisWorkbook.Sheets("wk_Eno")
         If tb1_value > tb1_initial_value Then
             If tb1_value <= 333 Then
-                'subCategory�̋@��ԍ����]��Max�ԍ��̎��̔ԍ��ʒu�ɒǉ��@��ԍ�����}������
+                'subCategoryの機器番号が従来Max番号の次の番号位置に追加機器番号分を挿入する
                 matchRow = 0
                 If tb1_initial_value > 99 Then
                     f_initial_digit3 = True
@@ -68,7 +69,7 @@ Private Sub CommandButton1_Click()
                     targetRow = targetRow + 4
                 Next i
             Else
-                MsgBox ("333�ȉ��̐��l��ݒ肵�Ă�������")
+                MsgBox ("333以下の数値を設定してください")
                 If tb1_initial_value > 99 Then
                     TextBox1 = Format(tb1_initial_value, "000")
                 Else
@@ -79,7 +80,7 @@ Private Sub CommandButton1_Click()
         End If
         If tb2_value > tb2_initial_value Then
             If tb2_value <= 333 Then
-                'subCategory�̋@��ԍ����]��Max�ԍ��̎��̔ԍ��ʒu�ɒǉ��@��ԍ�����}������
+                'subCategoryの機器番号が従来Max番号の次の番号位置に追加機器番号分を挿入する
                 matchRow = 0
                 If tb2_initial_value > 99 Then
                     f2_initial_digit3 = True
@@ -115,7 +116,7 @@ Private Sub CommandButton1_Click()
                     targetRow = targetRow + 4
                 Next i
             Else
-                MsgBox ("333�ȉ��̐��l��ݒ肵�Ă�������")
+                MsgBox ("333以下の数値を設定してください")
                 If tb2_initial_value > 99 Then
                     TextBox2 = Format(tb2_initial_value, "000")
                 Else
@@ -126,7 +127,7 @@ Private Sub CommandButton1_Click()
         End If
         If tb3_value > tb3_initial_value Then
             If tb3_value <= 333 Then
-                'subCategory�̋@��ԍ����]��Max�ԍ��̎��̔ԍ��ʒu�ɒǉ��@��ԍ�����}������
+                'subCategoryの機器番号が従来Max番号の次の番号位置に追加機器番号分を挿入する
                 matchRow = 0
                 If tb3_initial_value > 99 Then
                     f3_initial_digit3 = True
@@ -162,7 +163,7 @@ Private Sub CommandButton1_Click()
                     targetRow = targetRow + 4
                 Next i
             Else
-                MsgBox ("333�ȉ��̐��l��ݒ肵�Ă�������")
+                MsgBox ("333以下の数値を設定してください")
                 If tb3_initial_value > 99 Then
                     TextBox3 = Format(tb3_initial_value, "000")
                 Else
@@ -173,8 +174,8 @@ Private Sub CommandButton1_Click()
         End If
     End With
     
-    '�����ʂ����
-    ThisWorkbook.Sheets("wk_Eno").Cells(1, 1) = "*" '�����I���t���O
+    '操作画面を閉じる
+    ThisWorkbook.Sheets("wk_Eno").Cells(1, 1) = "*" '処理終了フラグ
     Unload ChangeEqNoForm
     
 End Sub
