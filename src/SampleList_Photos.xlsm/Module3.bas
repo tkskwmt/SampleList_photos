@@ -17,12 +17,12 @@ Sub output()
     End With
     
     With wb.Sheets(1)
-        .Cells(1, 1) = "è©¦é¨“ã‚µãƒ³ãƒ—ãƒ«å…¥å‡ºåº«è¨˜éŒ²è¡¨"
+        .Cells(1, 1) = "Œ±ƒTƒ“ƒvƒ‹“üoŒÉ‹L˜^•\"
         With .Cells(1, 1).Font
             .Size = 18
             .Bold = True
         End With
-        .Cells(1, 7) = "æ¥­å‹™ç•ªå·ï¼š" & sampleGyomNo
+        .Cells(1, 7) = "‹Æ–±”Ô†F" & sampleGyomNo
         With .Cells(1, 7)
             .HorizontalAlignment = xlRight
             .VerticalAlignment = xlCenter
@@ -30,10 +30,10 @@ Sub output()
         With .Range(.Cells(1, 1), .Cells(1, 7)).Borders(xlEdgeBottom)
             .LineStyle = xlContinuous
         End With
-        .Cells(stRow_wb - 1, 1) = "å—ä»˜ç•ªå·"
-        .Cells(stRow_wb - 1, 2) = "å“ç›®(å†™çœŸ)"
-        .Cells(stRow_wb - 1, 6) = "å‚™è€ƒ(ç•°å¸¸ç­‰)"
-        .Cells(stRow_wb - 1, 7) = "è¿”å´ãƒã‚§ãƒƒã‚¯"
+        .Cells(stRow_wb - 1, 1) = "ó•t”Ô†"
+        .Cells(stRow_wb - 1, 2) = "•i–Ú(Ê^)"
+        .Cells(stRow_wb - 1, 6) = "”õl(ˆÙí“™)"
+        .Cells(stRow_wb - 1, 7) = "•Ô‹pƒ`ƒFƒbƒN"
         With .Range(.Cells(stRow_wb - 1, 1), .Cells(stRow_wb - 1, 7))
             .HorizontalAlignment = xlCenter
             .VerticalAlignment = xlCenter
@@ -68,14 +68,14 @@ Sub output()
             .HorizontalAlignment = xlCenter
             .VerticalAlignment = xlCenter
         End With
-        .Cells(maxRow_wb + 2, 1) = "å—å–æ—¥ä»˜å°"
+        .Cells(maxRow_wb + 2, 1) = "óæ“ú•tˆó"
         With .Cells(maxRow_wb + 2, 1)
             .Borders(xlEdgeLeft).LineStyle = xlContinuous
             .Borders(xlEdgeTop).LineStyle = xlContinuous
             .Borders(xlEdgeBottom).LineStyle = xlContinuous
             .Borders(xlEdgeRight).LineStyle = xlContinuous
         End With
-        .Cells(maxRow_wb + 2, 5) = "é¡§å®¢åã€ä¼šç¤¾åãƒ»æ‰€å±ãƒ»æ°åã€‘(â€»)"
+        .Cells(maxRow_wb + 2, 5) = "ŒÚ‹q–¼y‰ïĞ–¼EŠ‘®E–¼z(¦)"
         With .Range(.Cells(maxRow_wb + 2, 5), .Cells(maxRow_wb + 2, 6))
             .Merge
             .Borders(xlEdgeLeft).LineStyle = xlContinuous
@@ -83,7 +83,7 @@ Sub output()
             .Borders(xlEdgeBottom).LineStyle = xlContinuous
             .Borders(xlEdgeRight).LineStyle = xlContinuous
         End With
-        .Cells(maxRow_wb + 2, 7) = "å¼•å–æ—¥ä»˜"
+        .Cells(maxRow_wb + 2, 7) = "ˆøæ“ú•t"
         With .Cells(maxRow_wb + 2, 7)
             .Borders(xlEdgeLeft).LineStyle = xlContinuous
             .Borders(xlEdgeTop).LineStyle = xlContinuous
@@ -121,10 +121,10 @@ Sub output()
             .Borders(xlEdgeBottom).Weight = xlMedium
             .Borders(xlEdgeRight).Weight = xlMedium
         End With
-        .Cells(maxRow_wb + 3, 2) = "  â€» å¤ªæ å†…ã¯ã€ä¾é ¼è€… (é¡§å®¢) ãŒè¨˜å…¥"
+        .Cells(maxRow_wb + 3, 2) = "  ¦ ‘¾˜g“à‚ÍAˆË—ŠÒ (ŒÚ‹q) ‚ª‹L“ü"
         .Cells(maxRow_wb + 3, 2).Font.Bold = True
         
-        'å°åˆ·è¨­å®š
+        'ˆóüİ’è
         Application.PrintCommunication = False
         With ActiveSheet.PageSetup
             .PrintTitleRows = "$1:$3"
@@ -138,7 +138,7 @@ Sub output()
             .CenterHeader = ""
             .RightHeader = ""
             .LeftFooter = ""
-            .CenterFooter = "&P / &N ãƒšãƒ¼ã‚¸"
+            .CenterFooter = "&P / &N ƒy[ƒW"
             .RightFooter = ""
             .LeftMargin = Application.InchesToPoints(0.236220472440945)
             .RightMargin = Application.InchesToPoints(0.236220472440945)
