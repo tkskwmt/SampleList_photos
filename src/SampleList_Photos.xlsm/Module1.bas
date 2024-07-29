@@ -44,7 +44,7 @@ Sub createMasterData()
     End If
     
     '機器No入力
-    strEqNo = InputBox("機器No？(例：S01-10,E01-99,M01-99)(Max.333)", , "E01-99")
+    strEqNo = InputBox("機器No？(例：E01-99,M01-99)(Max.333)", , "E01-99,M01-99")
     
     '半角/全角スペースを削除
     strEqNo = Replace(strEqNo, " ", "")
@@ -159,7 +159,7 @@ Sub createMasterData()
                 '終了番号の桁数により番号のゼロ埋めをする
                 Select Case Len(toNum)
                 Case 1
-                    .Cells(wtRow, eqNoClm) = strPre & Format(j, "0")
+                    .Cells(wtRow, eqNoClm) = strPre & Format(j, "00")
                 Case 2
                     .Cells(wtRow, eqNoClm) = strPre & Format(j, "00")
                 Case 3
