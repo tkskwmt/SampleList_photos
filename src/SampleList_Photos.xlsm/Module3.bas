@@ -1,51 +1,207 @@
 Attribute VB_Name = "Module3"
+Option Explicit
 Sub output()
+    '**********************************
+    '   帳票出力処理
+    '
+    '   Created by: Takashi Kawamoto
+    '   Created on: 2024/6/12
+    '**********************************
+    
     Dim wb As Workbook
-    Dim maxRow, maxRow_wb, stRow, stRow_wb
+    Dim maxRow, maxRow2, maxRow_wb, stRow, stRow_wb
     Dim sampleGyomNo
-    Set wb = Workbooks.Add
+    Dim strTargetEqNo, fromEqNo, toEqNo
+    Dim wkEqNo As Variant
+    Dim strTargetEqNo2 As Variant
+    Dim strTargetEqNo3 As Variant
+    Dim strTargetEqNo4 As Variant
+    Dim i, j, prNo, iDigit
         
-    stRow = 3
-    stRow_wb = 4
+    stRow = 3       'SampleListシート開始行番号
+    stRow_wb = 4    '帳票出力ファイル開始行番号
     With ThisWorkbook.Sheets("SampleList")
-        maxRow = .Cells(1048576, 2).End(xlUp).Row
+        maxRow = .Cells(stRow, 6).End(xlDown).Row - 1   'E番号体系の最終行番号
+        maxRow2 = .Cells(1048576, 1).End(xlUp).Row      'SampleListシート最終行番号
+        If maxRow > maxRow2 Then
+            maxRow = maxRow2
+        End If
         If maxRow < stRow Then
             maxRow = stRow
         End If
-        maxRow_wb = maxRow + (stRow_wb - stRow)
-        sampleGyomNo = .Cells(1, 1)
+        
+        strTargetEqNo = ""  '出力対象機器番号設定文字列(＝対象文字列)
+        prNo = 0            '前回番号(連続番号判定用)
+        iDigit = 1          '指標iの桁数
+        
+        'SampleListの開始行番号から、E番号体系の最終行番号まで処理を繰り返す
+        For i = stRow To maxRow
+        
+            'SampleListシートの2列目が空欄(＝写真データなし)の場合は出力対象外
+            If .Cells(i, 2) <> "" Then
+            
+                '写真データ有の行が連続の場合
+                If i = prNo + 1 Then
+                
+                    '対象定文字列の末尾がハイフン(＝終了機器番号待ち状態)の場合
+                    If Right(strTargetEqNo, 1) = "-" Then
+                    
+                        '終了機器番号として末尾に機器番号(＝行番号から2引いたもの(デフォルト))を追加
+                        strTargetEqNo = strTargetEqNo & (i - 2)
+                        
+                    '対象文字列の末尾がハイフン以外(＝ひとつ前の機器番号が入っている状態)の場合
+                    Else
+                        '機器番号(＝行番号から2引いたもの(デフォルト))の桁数に応じて、末尾の終了機器番号をひとつ前の機器番号から今回機器番号に入れ替える
+                        If i - 2 >= 10 Then
+                            If i - 2 >= 100 Then
+                                iDigit = 3
+                            Else
+                                iDigit = 2
+                            End If
+                        End If
+                        strTargetEqNo = Left(strTargetEqNo, Len(strTargetEqNo) - iDigit) & (i - 2)
+                    End If
+                    prNo = i    '前回番号セット
+                    
+                '写真データ有の行が不連続の場合
+                Else
+                
+                    '初回時は「機器番号」＋「ハイフン」を対象文字列にセットする
+                    If strTargetEqNo = "" Then
+                        strTargetEqNo = (i - 2) & "-"
+                        
+                    '2回目以降
+                    Else
+                    
+                        '対象文字列の末尾がハイフンの場合、機器番号が不連続の為、末尾の「ハイフン」の入替処理を行う
+                        If Right(strTargetEqNo, 1) = "-" Then
+                        
+                            '対象文字列の末尾のハイフンを削除した文字列に「カンマ」と「機器番号」と「ハイフン」を追加したものに入れ替える
+                            strTargetEqNo = Left(strTargetEqNo, Len(strTargetEqNo) - 1) & "," & (i - 2) & "-"
+                            
+                        '対象文字列の末尾がハイフン以外の場合
+                        Else
+                        
+                            '対象文字列の末尾に「カンマ」と「機器番号」と「ハイフン」を追加する
+                            strTargetEqNo = strTargetEqNo & "," & (i - 2) & "-"
+                        End If
+                    End If
+                    prNo = i    '前回番号セット
+                End If
+            End If
+        Next i
+        
+        '対象文字列の末尾がハイフンの場合、不要な「ハイフン」を取り除く
+        If Right(strTargetEqNo, 1) = "-" Then
+            strTargetEqNo = Left(strTargetEqNo, Len(strTargetEqNo) - 1)
+        End If
+        
+        'テキスト入力BOXを表示する(デフォルト表示：上記算出した対象文字列)
+        '出力したい機器番号が個別指定された場合、対象文字列を入力文字列で置き換える
+        strTargetEqNo = InputBox("帳票出力機器No？(例：1-10,13)", , strTargetEqNo)
+                
+        maxRow_wb = maxRow + (stRow_wb - stRow) '帳票出力データ最終行番号をセット
+        sampleGyomNo = .Cells(1, 1)             'サンプル業務番号をセット
     End With
     
+    '対象文字列2に、対象文字列を「カンマ」で分割した配列をセット
+    strTargetEqNo2 = Split(strTargetEqNo, ",")
+    
+    '上記配列の最初から最後まで処理を繰り返す
+    For i = 0 To UBound(strTargetEqNo2)
+    
+        '配列文字列に「ハイフン」が有る場合
+        If InStr(strTargetEqNo2(i), "-") > 0 Then
+        
+            '「ハイフン」前後の開始番号、終了番号を割り出し、同開始番号から同終了番号まで連続した機器番号をカンマ区切りで出力する
+            wkEqNo = Split(strTargetEqNo2(i), "-")
+            fromEqNo = Int(wkEqNo(0))
+            toEqNo = Int(wkEqNo(1))
+            For j = Int(fromEqNo) To Int(toEqNo)
+                strTargetEqNo3 = strTargetEqNo3 & "," & j
+            Next j
+            
+        '配列文字列に「ハイフン」がない場合
+        Else
+        
+            '配列文字列を機器番号としてそのままカンマ区切りで出力する
+            strTargetEqNo3 = strTargetEqNo3 & "," & Int(strTargetEqNo2(i))
+        End If
+    Next i
+    
+    '対象文字列3に、対象文字列の先頭にある「カンマ」を削除した文字列をセット
+    strTargetEqNo3 = Mid(strTargetEqNo3, 2)
+    
+    '対象文字列3がブランクの場合、処理を中止する(＝テキスト入力BOXでキャンセルが実行されたケース)
+    If strTargetEqNo3 = "" Then
+        Exit Sub
+    End If
+    
+    '対象文字列4に、対象文字列3を「カンマ」で分割した配列をセット
+    strTargetEqNo4 = Split(strTargetEqNo3, ",")
+    
+    '新規ワークブックを作成
+    Set wb = Workbooks.Add
+    
     With wb.Sheets(1)
+    
+        '帳票タイトル
         .Cells(1, 1) = "試験サンプル入出庫記録表"
         With .Cells(1, 1).Font
             .Size = 18
             .Bold = True
         End With
+        
+        '業務番号
         .Cells(1, 7) = "業務番号：" & sampleGyomNo
         With .Cells(1, 7)
             .HorizontalAlignment = xlRight
             .VerticalAlignment = xlCenter
+            .Font.Size = 14
         End With
+        
+        'アンダーライン追加
         With .Range(.Cells(1, 1), .Cells(1, 7)).Borders(xlEdgeBottom)
             .LineStyle = xlContinuous
         End With
+        
+        '表見出し追加
         .Cells(stRow_wb - 1, 1) = "受付番号"
         .Cells(stRow_wb - 1, 2) = "品目(写真)"
         .Cells(stRow_wb - 1, 6) = "備考(異常等)"
         .Cells(stRow_wb - 1, 7) = "返却チェック"
+        
+        'セル書式設定
         With .Range(.Cells(stRow_wb - 1, 1), .Cells(stRow_wb - 1, 7))
             .HorizontalAlignment = xlCenter
             .VerticalAlignment = xlCenter
         End With
         
+        '列幅
         .Columns("A:A").ColumnWidth = 12
         .Columns("B:E").ColumnWidth = 17
         .Columns("F:F").ColumnWidth = 40
         .Columns("G:G").ColumnWidth = 12
-        .Rows(stRow_wb & ":" & maxRow_wb).RowHeight = 95
-        ThisWorkbook.Sheets("SampleList").Range(ThisWorkbook.Sheets("SampleList").Cells(stRow, 1), ThisWorkbook.Sheets("SampleList").Cells(maxRow, 5)).Copy Destination:=.Cells(stRow_wb, 1)
         
+        '対象文字列4の最初から最後まで処理を繰り返す
+        For i = 0 To UBound(strTargetEqNo4)
+        
+            'SampleListの対象機器番号行情報を、そのまま新規ワークブックの該当行にコピーする
+            ThisWorkbook.Sheets("SampleList").Range(ThisWorkbook.Sheets("SampleList").Cells(strTargetEqNo4(i) + 2, 1), ThisWorkbook.Sheets("SampleList").Cells(strTargetEqNo4(i) + 2, 5)).Copy Destination:=.Cells(stRow_wb + i, 1)
+            
+            '新規ワークブック出力行番号をインクリメント
+            maxRow_wb = stRow_wb + i
+        Next i
+        
+        '行高さ
+        .Rows(stRow_wb & ":" & maxRow_wb).RowHeight = 100
+        
+        'セル内容クリア
+        With .Range(.Cells(stRow_wb, 2), .Cells(maxRow_wb, 5))
+            .ClearContents
+        End With
+        
+        '罫線追加、セル結合、表見出し追加
         With .Range(.Cells(stRow_wb - 1, 1), .Cells(maxRow_wb, 7))
             .Font.Size = 11
             .Borders(xlEdgeLeft).LineStyle = xlContinuous

@@ -1339,8 +1339,10 @@ Sub applySampleList()
                     '.Hyperlinks.Add Anchor:=.Cells(cntRow, cntClm), Address:=targetImage, TextToDisplay:=imageName
                     
                     '画像ファイル名を画像テキスト情報で上書き
-                    '.Cells(cntRow, cntClm) = arr4(j)   '画像テキスト情報⇒シート2列目から順次右に書き出し
-                    .Cells(cntRow, cntClm) = "*"   '画像テキスト情報⇒シート2列目から順次右に書き出し
+                    .Cells(cntRow, cntClm) = arr14   '画像テキスト情報⇒シート2列目から順次右に書き出し
+                    If .Cells(cntRow, cntClm) = "" Then
+                        .Cells(cntRow, cntClm) = "*"
+                    End If
                     
                     cntClm = cntClm + 1 '書き出し列番号カウントアップ
                 Next j
@@ -1488,6 +1490,9 @@ Sub maintenanceEqNo()
     
     'Master(Excel)手動更新反映処理
     Call applySampleListManual
+    
+    'ファイル保存
+    ThisWorkbook.Save
     
 End Sub
 
