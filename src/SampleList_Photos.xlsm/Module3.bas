@@ -16,7 +16,7 @@ Sub output()
     Dim strTargetEqNo2 As Variant
     Dim strTargetEqNo3 As Variant
     Dim strTargetEqNo4 As Variant
-    Dim i, j, prNo, iDigit
+    Dim i, j, prNo, prNoDigit
         
     stRow = 3       'SampleListシート開始行番号
     stRow_wb = 4    '帳票出力ファイル開始行番号
@@ -32,7 +32,7 @@ Sub output()
         
         strTargetEqNo = ""  '出力対象機器番号設定文字列(＝対象文字列)
         prNo = 0            '前回番号(連続番号判定用)
-        iDigit = 1          '指標iの桁数
+        prNoDigit = 1       'ひとつ前の機器番号の桁数
         
         'SampleListの開始行番号から、E番号体系の最終行番号まで処理を繰り返す
         For i = stRow To maxRow
@@ -51,15 +51,15 @@ Sub output()
                         
                     '対象文字列の末尾がハイフン以外(＝ひとつ前の機器番号が入っている状態)の場合
                     Else
-                        '機器番号(＝行番号から2引いたもの(デフォルト))の桁数に応じて、末尾の終了機器番号をひとつ前の機器番号から今回機器番号に入れ替える
-                        If i - 2 >= 10 Then
-                            If i - 2 >= 100 Then
-                                iDigit = 3
+                        'ひとつ前の機器番号(＝行番号から2引いたもの(デフォルト))の桁数に応じて、末尾の終了機器番号をひとつ前の機器番号から今回機器番号に入れ替える
+                        If prNo - 2 >= 10 Then
+                            If prNo - 2 >= 100 Then
+                                prNoDigit = 3
                             Else
-                                iDigit = 2
+                                prNoDigit = 2
                             End If
                         End If
-                        strTargetEqNo = Left(strTargetEqNo, Len(strTargetEqNo) - iDigit) & (i - 2)
+                        strTargetEqNo = Left(strTargetEqNo, Len(strTargetEqNo) - prNoDigit) & (i - 2)
                     End If
                     prNo = i    '前回番号セット
                     
