@@ -13,6 +13,7 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
+
 Option Explicit
 Dim tb2_initial_value, tb3_initial_value
 
@@ -53,11 +54,7 @@ Private Sub CommandButton1_Click()
                 For i = tb2_initial_value + 1 To tb2_value
                     .Rows(targetRow & ":" & targetRow + 3).Insert Shift:=xlShiftDown
                     .Cells(targetRow, 2) = "subCategory"
-                    If f2_digit3 = True Then
-                        .Cells(targetRow, 3) = "E" & Format(i, "000") & ":=-,-,-"
-                    Else
-                        .Cells(targetRow, 3) = "E" & Format(i, "00") & ":=-,-,-"
-                    End If
+                    .Cells(targetRow, 3) = "E" & Format(i, "00") & ":=-,-,-"
                     .Cells(targetRow + 1, 2) = "countStoredImages"
                     .Cells(targetRow + 1, 3) = 0
                     .Cells(targetRow + 2, 2) = "imageFile"
@@ -95,9 +92,9 @@ Private Sub CommandButton1_Click()
                     End If
                     If tb2_initial_value > 99 Then
                         f2_initial_digit3 = True
-                        strFind = "E" & Format(tb2_initial_value, "000") & "*"
+                        strFind = "E" & Format(tb2_value, "000") & "*"
                     Else
-                        strFind = "E" & Format(tb2_initial_value, "00") & "*"
+                        strFind = "E" & Format(tb2_value, "00") & "*"
                     End If
                     On Error Resume Next
                     matchRow = WorksheetFunction.Match(strFind, .Columns(3), 0)
@@ -108,11 +105,7 @@ Private Sub CommandButton1_Click()
                     For i = 1 To tb3_value
                         .Rows(targetRow & ":" & targetRow + 3).Insert Shift:=xlShiftDown
                         .Cells(targetRow, 2) = "subCategory"
-                        If f3_digit3 = True Then
-                            .Cells(targetRow, 3) = "M" & Format(i, "000") & ":=-,-,-"
-                        Else
-                            .Cells(targetRow, 3) = "M" & Format(i, "00") & ":=-,-,-"
-                        End If
+                        .Cells(targetRow, 3) = "M" & Format(i, "00") & ":=-,-,-"
                         .Cells(targetRow + 1, 2) = "countStoredImages"
                         .Cells(targetRow + 1, 3) = 0
                         .Cells(targetRow + 2, 2) = "imageFile"
@@ -145,11 +138,7 @@ Private Sub CommandButton1_Click()
                     For i = tb3_initial_value + 1 To tb3_value
                         .Rows(targetRow & ":" & targetRow + 3).Insert Shift:=xlShiftDown
                         .Cells(targetRow, 2) = "subCategory"
-                        If f3_digit3 = True Then
-                            .Cells(targetRow, 3) = "M" & Format(i, "000") & ":=-,-,-"
-                        Else
-                            .Cells(targetRow, 3) = "M" & Format(i, "00") & ":=-,-,-"
-                        End If
+                        .Cells(targetRow, 3) = "M" & Format(i, "00") & ":=-,-,-"
                         .Cells(targetRow + 1, 2) = "countStoredImages"
                         .Cells(targetRow + 1, 3) = 0
                         .Cells(targetRow + 2, 2) = "imageFile"
@@ -159,7 +148,7 @@ Private Sub CommandButton1_Click()
                         targetRow = targetRow + 4
                     Next i
                 End If
-            ElseIf tb3_value < tb3_initial_value Then
+            Else
                 MsgBox ("333以下の数値を設定してください")
                 If tb3_initial_value > 99 Then
                     TextBox3 = Format(tb3_initial_value, "000")
@@ -168,7 +157,7 @@ Private Sub CommandButton1_Click()
                 End If
                 Exit Sub
             End If
-        Else
+        ElseIf tb3_value < tb3_initial_value Then
             MsgBox ("機器番号の減算機能はありません")
             If tb3_initial_value > 99 Then
                 TextBox3 = Format(tb3_initial_value, "000")

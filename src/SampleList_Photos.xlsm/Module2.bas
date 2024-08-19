@@ -223,8 +223,8 @@ Sub loadPlist(startRow, startColumn)
                         If .Cells(i, startColumn + 1) = "imageInfo" Then
                             If .Cells(i - 1, startColumn + 1) = "imageInfo" Then
                                 .Cells(i - 1, startColumn + 2) = .Cells(i - 1, startColumn + 2) & ";:." & .Cells(i, startColumn + 2)
-                                .Cells(1, startColumn) = ""
-                                .Cells(1, startColumn + 1) = ""
+                                .Cells(i, startColumn) = ""
+                                .Cells(i, startColumn + 1) = ""
                             Else
                                 i = i + 1
                             End If
@@ -239,8 +239,8 @@ Sub loadPlist(startRow, startColumn)
                         If .Cells(i, startColumn + 1) = "imageInfo" Then
                             If .Cells(i - 1, startColumn + 1) = "imageInfo" Then
                                 .Cells(i - 1, startColumn + 2) = .Cells(i - 1, startColumn + 2) & ";:." & .Cells(i, startColumn + 2)
-                                .Cells(1, startColumn) = ""
-                                .Cells(1, startColumn + 1) = ""
+                                .Cells(i, startColumn) = ""
+                                .Cells(i, startColumn + 1) = ""
                             Else
                                 i = i + 1
                             End If
@@ -254,8 +254,8 @@ Sub loadPlist(startRow, startColumn)
                         If .Cells(i, startColumn + 1) = "imageInfo" Then
                             If .Cells(i - 1, startColumn + 1) = "imageInfo" Then
                                 .Cells(i - 1, startColumn + 2) = .Cells(i - 1, startColumn + 2) & ";:." & .Cells(i, startColumn + 2)
-                                .Cells(1, startColumn) = ""
-                                .Cells(1, startColumn + 1) = ""
+                                .Cells(i, startColumn) = ""
+                                .Cells(i, startColumn + 1) = ""
                             Else
                                 i = i + 1
                             End If
@@ -278,8 +278,8 @@ Sub loadPlist(startRow, startColumn)
                     If .Cells(i, startColumn + 1) = "imageFile" Then
                         If .Cells(i - 2, startColumn + 1) = "imageFile" Then
                             .Cells(i - 2, startColumn + 2) = .Cells(i - 2, startColumn + 2) & "," & myNode2
-                            .Cells(1, startColumn) = ""
-                            .Cells(1, startColumn + 1) = ""
+                            .Cells(i, startColumn) = ""
+                            .Cells(i, startColumn + 1) = ""
                         Else
                             .Cells(i, startColumn + 2) = myNode2
                             i = i + 1
@@ -289,8 +289,8 @@ Sub loadPlist(startRow, startColumn)
                     ElseIf .Cells(i, startColumn + 1) = "imageInfo" Then
                         If .Cells(i - 1, startColumn + 1) = "imageInfo" Then
                             .Cells(i - 1, startColumn + 2) = .Cells(i - 1, startColumn + 2) & ";:." & myNode2
-                            .Cells(1, startColumn) = ""
-                            .Cells(1, startColumn + 1) = ""
+                            .Cells(i, startColumn) = ""
+                            .Cells(i, startColumn + 1) = ""
                         Else
                             .Cells(i, startColumn + 2) = myNode2
                             i = i + 1
@@ -486,6 +486,10 @@ Sub comparePlist()
     Dim fromRow1, toRow1, fromRow2, toRow2
     Dim cntRow1, cntRow2
     Dim array1, array2 As Variant
+    Dim eqNo1, eqNo2, eqNoNo1, eqNoNo2
+    Dim EMaxEqNo1, MMaxEqNo1
+    Dim EMaxEqNo2, MMaxEqNo2
+    Dim str1, str2
     
     '初期処理
     startRow = 20
@@ -499,8 +503,150 @@ Sub comparePlist()
     
         maxRow1 = .Cells(1048576, 1).End(xlUp).Row  'Masterデータ最終行番号
         maxRow2 = .Cells(1048576, 5).End(xlUp).Row  '持込データ最終行番号
+        
+        
         If maxRow2 > maxRow1 Then
-            maxRow = maxRow2
+            MsgBox ("持込データの機器数がMasterデータの機器数を超えており、マッチング処理ができません。処理を中止します。")
+            End '処理中止
+            
+        'Masterデータの機器数が持込データの機器数より多い場合
+        ElseIf maxRow2 < maxRow1 Then
+        
+            maxRow = maxRow1    '処理最終行番号にMasterデータ最終行番号をセット
+            
+            '初期化
+            EMaxEqNo1 = 0   'MasterデータE番号体系最終機器番号
+            EMaxEqNo2 = 0   '持込データE番号体系最終機器番号
+            MMaxEqNo1 = 0   'MasterデータM番号体系最終機器番号
+            MMaxEqNo2 = 0   '持込データM番号体系最終機器番号
+            
+            'Masterデータの開始行番号から最終号番号まで処理を繰り返す
+            For i = startRow To maxRow
+            
+                '「subCategory」データのみを処理対象とする
+                If .Cells(i, 2) = "subCategory" Then
+                
+                    eqNo1 = Mid(.Cells(i, 3), 1, InStr(.Cells(i, 3), ":=") - 1)                 'Masterデータ機器番号をセット
+                    eqNoNo1 = CInt(Mid(Mid(.Cells(i, 3), 1, InStr(.Cells(i, 3), ":=") - 1), 2)) 'Masterデータ機器番号(番号部分を数値化したもの)をセット
+                    
+                    'MasterデータがM番号体系の最初の機器番号(＝01)に該当した場合、MasterデータE番号体系最終機器番号を判別・取得する
+                    If Left(.Cells(i, 3), 1) = "M" And eqNoNo1 = 1 Then
+                        If .Cells(i - 2, 2) = "mainCategory" Then
+                            EMaxEqNo1 = CInt(Mid(Mid(.Cells(i - 6, 3), 1, InStr(.Cells(i - 6, 3), ":=") - 1), 2))   'MasterデータE番号体系最終機器番号をセット
+                        Else
+                            EMaxEqNo1 = CInt(Mid(Mid(.Cells(i - 4, 3), 1, InStr(.Cells(i - 4, 3), ":=") - 1), 2))   'MasterデータE番号体系最終機器番号をセット
+                        End If
+                    End If
+                    
+                    '持込データが最終機器番号を超えた場合
+                    If .Cells(i, 7) = "" Then
+                    
+                        '持込データがE番号体系で終了した場合、持込データE番号体系最終機器番号を判別・取得する
+                        If Left(.Cells(i - 4, 7), 1) = "E" Then
+                            EMaxEqNo2 = eqNoNo2                     '持込データE番号体系最終機器番号をセット
+                            
+                        '持込データがM番号体系で終了した場合、持込データM番号体系最終機器番号を判別・取得する
+                        ElseIf Left(.Cells(i - 4, 7), 1) = "M" Then
+                            MMaxEqNo2 = eqNoNo2                     '持込データM番号体系最終機器番号をセット
+                        End If
+                    Else
+                        If .Cells(i, 6) = "subCategory" Then
+                            eqNo2 = Mid(.Cells(i, 7), 1, InStr(.Cells(i, 7), ":=") - 1)                 '持込データ機器番号をセット
+                            eqNoNo2 = CInt(Mid(Mid(.Cells(i, 7), 1, InStr(.Cells(i, 7), ":=") - 1), 2)) '持込データ機器番号(番号部分を数値化したもの)をセット
+                            
+                            '持込データがM番号体系の最初の機器番号(＝01)に該当した場合、持込データE番号体系最終機器番号を判別・取得する
+                            If Left(.Cells(i, 7), 1) = "M" And eqNoNo2 = 1 Then
+                                If .Cells(i - 2, 6) = "mainCategory" Then
+                                    EMaxEqNo2 = CInt(Mid(Mid(.Cells(i - 6, 7), 1, InStr(.Cells(i - 6, 7), ":=") - 1), 2))   '持込データE番号体系最終機器番号をセット
+                                Else
+                                    EMaxEqNo2 = CInt(Mid(Mid(.Cells(i - 4, 7), 1, InStr(.Cells(i - 4, 7), ":=") - 1), 2))   '持込データE番号体系最終機器番号をセット
+                                End If
+                            End If
+                        End If
+                        If .Cells(i, 6) = "mainCategory" Then
+                            EMaxEqNo2 = CInt(Mid(Mid(.Cells(i - 4, 7), 1, InStr(.Cells(i - 4, 7), ":=") - 1), 2))   '持込データE番号体系最終機器番号をセット
+                        End If
+                    End If
+                End If
+                
+                'Masterデータ最終行番号到達時、Masterデータ最終機器番号を判別・取得する
+                If i = maxRow Then
+                
+                    Select Case Left(eqNo1, 1)
+                    
+                    'E番号体系で終了した場合
+                    Case "E"
+                        EMaxEqNo1 = eqNoNo1 'MasterデータE番号体系最終機器番号をセット
+                        
+                    'M番号体系で終了した場合
+                    Case "M"
+                        MMaxEqNo1 = eqNoNo1 'MasterデータM番号体系最終機器番号をセット
+                    End Select
+                End If
+            Next i
+            
+            '「番号体系不整合-自動修正画面」を表示
+            Load AutoRecoveryForm
+            str1 = "Master側　: E01-" & Format(EMaxEqNo1, "00") & ",M" & Format(IIf(MMaxEqNo1 = 0, 0, 1), "00") & "-" & Format(MMaxEqNo1, "00")
+            str2 = "持出データ側: E01-" & Format(EMaxEqNo2, "00") & ",M" & Format(IIf(MMaxEqNo2 = 0, 0, 1), "00") & "-" & Format(MMaxEqNo2, "00")
+            AutoRecoveryForm.Label3 = Replace(str1, ",M00-00", "")
+            AutoRecoveryForm.Label4 = Replace(str2, ",M00-00", "")
+            AutoRecoveryForm.Show
+            
+            'Masterデータの開始機器番号から最終機器番号まで処理を繰り返す
+            For i = startRow To maxRow
+            
+                '「subCategory」データのみを処理対象とする
+                If .Cells(i, 2) = "subCategory" Then
+                
+                    eqNo1 = Mid(.Cells(i, 3), 1, InStr(.Cells(i, 3), ":=") - 1)                 'Masterデータ機器番号をセット
+                    eqNoNo1 = CInt(Mid(Mid(.Cells(i, 3), 1, InStr(.Cells(i, 3), ":=") - 1), 2)) 'Masterデータ機器番号(番号部分を数値化したもの)をセット
+                    
+                    'MasterデータのE番号体系最終機器番号が持出データのE番号体系最終機器番号より大きい場合
+                    If EMaxEqNo1 > EMaxEqNo2 Then
+                        
+                        '***持出データのE番号体系自動修正***
+                        'MasterデータがE番号体系、かつ持出データE番号体系最終機器番号の次の機器番号に該当した場合
+                        '⇒持出データエリアに空エリアを挿入して、Masterデータ側の機器番号が多くなっている差分データエリアを持出データ側にコピーする
+                        If Left(eqNo1, 1) = "E" And eqNoNo1 = EMaxEqNo2 + 1 Then
+                            '空エリア挿入
+                            .Range(.Cells(i, 5), .Cells(i + 4 * (EMaxEqNo1 - EMaxEqNo2) - 1, 8)).Insert Shift:=xlDown, CopyOrigin:=xlFormatFromLeftOrAbove
+                            'エリアコピー
+                            .Range(.Cells(i, 1), .Cells(i + 4 * (EMaxEqNo1 - EMaxEqNo2) - 1, 4)).Copy Destination:=.Cells(i, 5)
+                        End If
+                        
+                    End If
+                    
+                    '持込データ側にM番号体系がない場合
+                    If MMaxEqNo2 = 0 Then
+                    
+                        '***持出データのM番号体系自動修正1***
+                        'MasterデータがM番号体系の最初の機器番号(＝01)に該当した場合
+                        '⇒MasterデータのM番号体系エリア全体を持出データ側にコピーする
+                        If Left(eqNo1, 1) = "M" And eqNoNo1 = 1 Then
+                        
+                            'MasterデータM番号体系最終機器番号が取得済みの場合(念のための考慮)
+                            If MMaxEqNo1 <> 0 Then
+                                'エリアコピー
+                                .Range(.Cells(i, 1), .Cells(i + 4 * MMaxEqNo1 - 1, 4)).Copy Destination:=.Cells(i, 5)
+                            End If
+                        End If
+                        
+                    'MasterデータのM番号体系最終機器番号が持出データのM番号体系最終機器番号より大きい場合
+                    ElseIf MMaxEqNo1 > MMaxEqNo2 Then
+                    
+                        '***持出データのM番号体系自動修正2***
+                        'MasterデータがM番号体系、かつ持出データM番号体系最終機器番号の次の機器番号に該当した場合
+                        '⇒Masterデータ側の機器番号が多くなっている差分データエリアを持出データ側にコピーする
+                        If Left(eqNo1, 1) = "M" And eqNoNo1 = MMaxEqNo2 + 1 Then
+                            'エリアコピー
+                            .Range(.Cells(i, 1), .Cells(i + 4 * (MMaxEqNo1 - MMaxEqNo2) - 1, 4)).Copy Destination:=.Cells(i, 5)
+                        End If
+                    End If
+                End If
+            Next i
+            
+        'Masterデータの機器数＝持込データの機器数の場合
         Else
             maxRow = maxRow1
         End If
@@ -585,10 +731,12 @@ Sub mergePlist()
     Dim startRow2
     Dim maxRow1, maxRow2, maxRow3
     Dim lastSubRow
-    Dim i
+    Dim i, j
     Dim str1
     Dim int1
     Dim strMainCategory
+    Dim emptyRow
+    Dim imageFileMaster, imageFileCarryIn As Variant
     
     '「機器番号wkシート」
     With ThisWorkbook.Sheets("wk_Eno")
@@ -613,10 +761,121 @@ Sub mergePlist()
                         MsgBox ("SubCategory: " & .Cells(i, 7) & " ⇒マスターの写真を削除する場合は手作業でマスター側を上書きしてください")
                     
                     Else
-                        .Cells(i + 1, 3) = .Cells(i + 1, 7) '写真枚数
-                        .Cells(i + 2, 3) = .Cells(i + 2, 7) '写真名(複数可)
-                        .Cells(i + 1, 3).Font.Color = RGB(255, 0, 0)    '赤色(更新後)
-                        .Cells(i + 2, 3).Font.Color = RGB(255, 0, 0)    '赤色(更新後)
+                        'ImageFile反映方法選択画面を表示
+                        ThisWorkbook.Sheets("wk_Eno").Cells(1, 5) = ""  '正常処理フラグクリア
+                        Load ApplyToImageFileForm   '画面ロード
+                        
+                        'フォームレイアウト設定１
+                        ApplyToImageFileForm.Frame1.Caption = Mid(.Cells(i, 7), 1, InStr(.Cells(i, 7), ":=") - 1) & "(持込データ)の反映方法"
+                        imageFileMaster = Split(.Cells(i + 2, 3), ",")
+                        imageFileCarryIn = Split(.Cells(i + 2, 7), ",")
+                        ApplyToImageFileForm.Image1.PictureSizeMode = fmPictureSizeModeZoom
+                        ApplyToImageFileForm.Image2.PictureSizeMode = fmPictureSizeModeZoom
+                        ApplyToImageFileForm.Image3.PictureSizeMode = fmPictureSizeModeZoom
+                        ApplyToImageFileForm.Image4.PictureSizeMode = fmPictureSizeModeZoom
+                        ApplyToImageFileForm.Image5.PictureSizeMode = fmPictureSizeModeZoom
+                        ApplyToImageFileForm.Image6.PictureSizeMode = fmPictureSizeModeZoom
+                        ApplyToImageFileForm.Image7.PictureSizeMode = fmPictureSizeModeZoom
+                        ApplyToImageFileForm.Image8.PictureSizeMode = fmPictureSizeModeZoom
+                        
+                        'Master側写真サムネイル表示(合計4枚)
+                        Select Case UBound(imageFileMaster)
+                        Case 0
+                            ApplyToImageFileForm.Image1.Picture = LoadPicture(".\Master\thumbnail\#" & imageFileMaster(0))
+                            ApplyToImageFileForm.Image2.Picture = LoadPicture("")
+                            ApplyToImageFileForm.Image3.Picture = LoadPicture("")
+                            ApplyToImageFileForm.Image4.Picture = LoadPicture("")
+                        Case 1
+                            ApplyToImageFileForm.Image1.Picture = LoadPicture(".\Master\thumbnail\#" & imageFileMaster(0))
+                            ApplyToImageFileForm.Image2.Picture = LoadPicture(".\Master\thumbnail\#" & imageFileMaster(1))
+                            ApplyToImageFileForm.Image3.Picture = LoadPicture("")
+                            ApplyToImageFileForm.Image4.Picture = LoadPicture("")
+                        Case 2
+                            ApplyToImageFileForm.Image1.Picture = LoadPicture(".\Master\thumbnail\#" & imageFileMaster(0))
+                            ApplyToImageFileForm.Image2.Picture = LoadPicture(".\Master\thumbnail\#" & imageFileMaster(1))
+                            ApplyToImageFileForm.Image3.Picture = LoadPicture(".\Master\thumbnail\#" & imageFileMaster(2))
+                            ApplyToImageFileForm.Image4.Picture = LoadPicture("")
+                        Case Is >= 3
+                            ApplyToImageFileForm.Image1.Picture = LoadPicture(".\Master\thumbnail\#" & imageFileMaster(0))
+                            ApplyToImageFileForm.Image2.Picture = LoadPicture(".\Master\thumbnail\#" & imageFileMaster(1))
+                            ApplyToImageFileForm.Image3.Picture = LoadPicture(".\Master\thumbnail\#" & imageFileMaster(2))
+                            ApplyToImageFileForm.Image4.Picture = LoadPicture(".\Master\thumbnail\#" & imageFileMaster(3))
+                        End Select
+                        
+                        '持込データ側写真サムネイル表示(合計4枚)
+                        Select Case UBound(imageFileCarryIn)
+                        Case 0
+                            ApplyToImageFileForm.Image5.Picture = LoadPicture(Replace(.Cells(1, 7), ".plist", "\") & imageFileCarryIn(0))
+                            ApplyToImageFileForm.Image6.Picture = LoadPicture("")
+                            ApplyToImageFileForm.Image7.Picture = LoadPicture("")
+                            ApplyToImageFileForm.Image8.Picture = LoadPicture("")
+                        Case 1
+                            ApplyToImageFileForm.Image5.Picture = LoadPicture(Replace(.Cells(1, 7), ".plist", "\") & imageFileCarryIn(0))
+                            ApplyToImageFileForm.Image6.Picture = LoadPicture(Replace(.Cells(1, 7), ".plist", "\") & imageFileCarryIn(1))
+                            ApplyToImageFileForm.Image7.Picture = LoadPicture("")
+                            ApplyToImageFileForm.Image8.Picture = LoadPicture("")
+                        Case 2
+                            ApplyToImageFileForm.Image5.Picture = LoadPicture(Replace(.Cells(1, 7), ".plist", "\") & imageFileCarryIn(0))
+                            ApplyToImageFileForm.Image6.Picture = LoadPicture(Replace(.Cells(1, 7), ".plist", "\") & imageFileCarryIn(1))
+                            ApplyToImageFileForm.Image7.Picture = LoadPicture(Replace(.Cells(1, 7), ".plist", "\") & imageFileCarryIn(2))
+                            ApplyToImageFileForm.Image8.Picture = LoadPicture("")
+                        Case Is >= 3
+                            ApplyToImageFileForm.Image5.Picture = LoadPicture(Replace(.Cells(1, 7), ".plist", "\") & imageFileCarryIn(0))
+                            ApplyToImageFileForm.Image6.Picture = LoadPicture(Replace(.Cells(1, 7), ".plist", "\") & imageFileCarryIn(1))
+                            ApplyToImageFileForm.Image7.Picture = LoadPicture(Replace(.Cells(1, 7), ".plist", "\") & imageFileCarryIn(2))
+                            ApplyToImageFileForm.Image8.Picture = LoadPicture(Replace(.Cells(1, 7), ".plist", "\") & imageFileCarryIn(3))
+                        End Select
+                        
+                        'フォームレイアウト設定２
+                        ApplyToImageFileForm.OptionButton1.Caption = Mid(.Cells(i, 7), 1, InStr(.Cells(i, 7), ":=") - 1) & "(Master)を差し替える"
+                        emptyRow = 0
+                        For j = 20 To .Cells(1048576, 2).End(xlUp).Row
+                            If IsNumeric(.Cells(j, 3)) = True Then
+                                If .Cells(j, 3) > 0 Then
+                                    emptyRow = j + 3
+                                End If
+                            End If
+                        Next j
+                        
+                        '写真が1枚もない場合はそのままコピー処理を実行する
+                        If .Cells(i + 2, 3) = "" Then
+                            'Masterデータ側に持込データ情報をコピーする
+                            .Cells(i, 3) = .Cells(i, 7)
+                            .Cells(i, 3).Font.Color = RGB(255, 0, 0)    '赤色(更新後)
+                            .Cells(i + 1, 3) = .Cells(i + 1, 7) '写真枚数
+                            .Cells(i + 2, 3) = .Cells(i + 2, 7) '写真名(複数可)
+                            .Cells(i + 1, 3).Font.Color = RGB(255, 0, 0)    '赤色(更新後)
+                            .Cells(i + 2, 3).Font.Color = RGB(255, 0, 0)    '赤色(更新後)
+                        Else
+                            ApplyToImageFileForm.OptionButton2.Caption = Mid(.Cells(emptyRow, 7), 1, InStr(.Cells(emptyRow, 7), ":=") - 1) & "に追加する"
+                            ApplyToImageFileForm.Show   '画面表示
+                            
+                            '正常処理フラグが空欄の場合、処理を中止する
+                            If ThisWorkbook.Sheets("wk_Eno").Cells(1, 5) = "" Then
+                                End '処理中止
+                            Else
+                                '正常処理フラグ-> 1:同一機器番号の写真差し替え 2:末尾の写真空欄行に写真追加
+                                Select Case ThisWorkbook.Sheets("wk_Eno").Cells(1, 5)
+                                Case 1
+                                    'Masterデータ側に持込データ情報をコピーする
+                                    .Cells(i, 3) = .Cells(i, 7)
+                                    .Cells(i, 3).Font.Color = RGB(255, 0, 0)    '赤色(更新後)
+                                    .Cells(i + 1, 3) = .Cells(i + 1, 7) '写真枚数
+                                    .Cells(i + 2, 3) = .Cells(i + 2, 7) '写真名(複数可)
+                                    .Cells(i + 1, 3).Font.Color = RGB(255, 0, 0)    '赤色(更新後)
+                                    .Cells(i + 2, 3).Font.Color = RGB(255, 0, 0)    '赤色(更新後)
+                                Case 2
+                                    'Masterデータ側に持込データ情報をコピーする
+                                    .Cells(emptyRow, 3) = Replace(.Cells(i, 7), Mid(.Cells(i, 7), 1, InStr(.Cells(i, 7), ":=") - 1), Mid(.Cells(emptyRow, 7), 1, InStr(.Cells(emptyRow, 7), ":=") - 1))
+                                    .Cells(emptyRow, 3).Font.Color = RGB(255, 0, 0)    '赤色(更新後)
+                                    .Cells(emptyRow + 1, 3) = .Cells(i + 1, 7) '写真枚数
+                                    .Cells(emptyRow + 2, 3) = .Cells(i + 2, 7) '写真名(複数可)
+                                    .Cells(emptyRow + 1, 3).Font.Color = RGB(255, 0, 0)    '赤色(更新後)
+                                    .Cells(emptyRow + 2, 3).Font.Color = RGB(255, 0, 0)    '赤色(更新後)
+                                End Select
+                                ThisWorkbook.Sheets("wk_Eno").Cells(1, 5) = ""  '正常処理フラグクリア
+                            End If
+                        End If
                     End If
                     
                 '「サブカテゴリ名」アンマッチ
@@ -638,21 +897,127 @@ Sub mergePlist()
                     .Cells(i, 3).Font.Color = RGB(255, 0, 0)    '赤色(更新後)
                 
                  Case "$*"
-                    'Masterデータ側に持込データ情報をコピーする
-                    .Cells(i, 3) = .Cells(i, 7)
-                    .Cells(i, 3).Font.Color = RGB(255, 0, 0)    '赤色(更新後)
-                
                     'Masterデータ側の「写真情報」有＆持込データ側の「写真情報」なし(空欄)の場合は、持出データ情報による上書きは行わず、確認メッセージを表示するのみとする
                     If .Cells(i + 2, 3) <> "" And .Cells(i + 2, 7) = "" Then
                         MsgBox ("SubCategory: " & .Cells(i, 7) & " ⇒マスターの写真を削除する場合は手作業でマスター側を上書きしてください")
                         
                     Else
-                        .Cells(i + 1, 3) = .Cells(i + 1, 7) '写真枚数
-                        .Cells(i + 2, 3) = .Cells(i + 2, 7) '写真名(複数可)
-                        .Cells(i + 1, 3).Font.Color = RGB(255, 0, 0)    '赤色(更新後)
-                        .Cells(i + 2, 3).Font.Color = RGB(255, 0, 0)    '赤色(更新後)
+                        'ImageFile反映方法選択画面を表示
+                        ThisWorkbook.Sheets("wk_Eno").Cells(1, 5) = ""  '正常処理フラグクリア
+                        Load ApplyToImageFileForm   '画面ロード
+                        
+                        'フォームレイアウト設定１
+                        ApplyToImageFileForm.Frame1.Caption = Mid(.Cells(i, 7), 1, InStr(.Cells(i, 7), ":=") - 1) & "(持込データ)の反映方法"
+                        imageFileMaster = Split(.Cells(i + 2, 3), ",")
+                        imageFileCarryIn = Split(.Cells(i + 2, 7), ",")
+                        ApplyToImageFileForm.Image1.PictureSizeMode = fmPictureSizeModeZoom
+                        ApplyToImageFileForm.Image2.PictureSizeMode = fmPictureSizeModeZoom
+                        ApplyToImageFileForm.Image3.PictureSizeMode = fmPictureSizeModeZoom
+                        ApplyToImageFileForm.Image4.PictureSizeMode = fmPictureSizeModeZoom
+                        ApplyToImageFileForm.Image5.PictureSizeMode = fmPictureSizeModeZoom
+                        ApplyToImageFileForm.Image6.PictureSizeMode = fmPictureSizeModeZoom
+                        ApplyToImageFileForm.Image7.PictureSizeMode = fmPictureSizeModeZoom
+                        ApplyToImageFileForm.Image8.PictureSizeMode = fmPictureSizeModeZoom
+                        
+                        'Master側写真サムネイル表示(合計4枚)
+                        Select Case UBound(imageFileMaster)
+                        Case 0
+                            ApplyToImageFileForm.Image1.Picture = LoadPicture(".\Master\thumbnail\#" & imageFileMaster(0))
+                            ApplyToImageFileForm.Image2.Picture = LoadPicture("")
+                            ApplyToImageFileForm.Image3.Picture = LoadPicture("")
+                            ApplyToImageFileForm.Image4.Picture = LoadPicture("")
+                        Case 1
+                            ApplyToImageFileForm.Image1.Picture = LoadPicture(".\Master\thumbnail\#" & imageFileMaster(0))
+                            ApplyToImageFileForm.Image2.Picture = LoadPicture(".\Master\thumbnail\#" & imageFileMaster(1))
+                            ApplyToImageFileForm.Image3.Picture = LoadPicture("")
+                            ApplyToImageFileForm.Image4.Picture = LoadPicture("")
+                        Case 2
+                            ApplyToImageFileForm.Image1.Picture = LoadPicture(".\Master\thumbnail\#" & imageFileMaster(0))
+                            ApplyToImageFileForm.Image2.Picture = LoadPicture(".\Master\thumbnail\#" & imageFileMaster(1))
+                            ApplyToImageFileForm.Image3.Picture = LoadPicture(".\Master\thumbnail\#" & imageFileMaster(2))
+                            ApplyToImageFileForm.Image4.Picture = LoadPicture("")
+                        Case Is >= 3
+                            ApplyToImageFileForm.Image1.Picture = LoadPicture(".\Master\thumbnail\#" & imageFileMaster(0))
+                            ApplyToImageFileForm.Image2.Picture = LoadPicture(".\Master\thumbnail\#" & imageFileMaster(1))
+                            ApplyToImageFileForm.Image3.Picture = LoadPicture(".\Master\thumbnail\#" & imageFileMaster(2))
+                            ApplyToImageFileForm.Image4.Picture = LoadPicture(".\Master\thumbnail\#" & imageFileMaster(3))
+                        End Select
+                        
+                        '持込データ側写真サムネイル表示(合計4枚)
+                        Select Case UBound(imageFileCarryIn)
+                        Case 0
+                            ApplyToImageFileForm.Image5.Picture = LoadPicture(Replace(.Cells(1, 7), ".plist", "\") & imageFileCarryIn(0))
+                            ApplyToImageFileForm.Image6.Picture = LoadPicture("")
+                            ApplyToImageFileForm.Image7.Picture = LoadPicture("")
+                            ApplyToImageFileForm.Image8.Picture = LoadPicture("")
+                        Case 1
+                            ApplyToImageFileForm.Image5.Picture = LoadPicture(Replace(.Cells(1, 7), ".plist", "\") & imageFileCarryIn(0))
+                            ApplyToImageFileForm.Image6.Picture = LoadPicture(Replace(.Cells(1, 7), ".plist", "\") & imageFileCarryIn(1))
+                            ApplyToImageFileForm.Image7.Picture = LoadPicture("")
+                            ApplyToImageFileForm.Image8.Picture = LoadPicture("")
+                        Case 2
+                            ApplyToImageFileForm.Image5.Picture = LoadPicture(Replace(.Cells(1, 7), ".plist", "\") & imageFileCarryIn(0))
+                            ApplyToImageFileForm.Image6.Picture = LoadPicture(Replace(.Cells(1, 7), ".plist", "\") & imageFileCarryIn(1))
+                            ApplyToImageFileForm.Image7.Picture = LoadPicture(Replace(.Cells(1, 7), ".plist", "\") & imageFileCarryIn(2))
+                            ApplyToImageFileForm.Image8.Picture = LoadPicture("")
+                        Case Is >= 3
+                            ApplyToImageFileForm.Image5.Picture = LoadPicture(Replace(.Cells(1, 7), ".plist", "\") & imageFileCarryIn(0))
+                            ApplyToImageFileForm.Image6.Picture = LoadPicture(Replace(.Cells(1, 7), ".plist", "\") & imageFileCarryIn(1))
+                            ApplyToImageFileForm.Image7.Picture = LoadPicture(Replace(.Cells(1, 7), ".plist", "\") & imageFileCarryIn(2))
+                            ApplyToImageFileForm.Image8.Picture = LoadPicture(Replace(.Cells(1, 7), ".plist", "\") & imageFileCarryIn(3))
+                        End Select
+                        
+                        'フォームレイアウト設定２
+                        ApplyToImageFileForm.OptionButton1.Caption = Mid(.Cells(i, 7), 1, InStr(.Cells(i, 7), ":=") - 1) & "(Master)を差し替える"
+                        emptyRow = 0
+                        For j = 20 To .Cells(1048576, 2).End(xlUp).Row
+                            If IsNumeric(.Cells(j, 3)) = True Then
+                                If .Cells(j, 3) > 0 Then
+                                    emptyRow = j + 3
+                                End If
+                            End If
+                        Next j
+                        
+                        '写真が1枚もない場合はそのままコピー処理を実行する
+                        If .Cells(i + 2, 3) = "" Then
+                            'Masterデータ側に持込データ情報をコピーする
+                            .Cells(i, 3) = .Cells(i, 7)
+                            .Cells(i, 3).Font.Color = RGB(255, 0, 0)    '赤色(更新後)
+                            .Cells(i + 1, 3) = .Cells(i + 1, 7) '写真枚数
+                            .Cells(i + 2, 3) = .Cells(i + 2, 7) '写真名(複数可)
+                            .Cells(i + 1, 3).Font.Color = RGB(255, 0, 0)    '赤色(更新後)
+                            .Cells(i + 2, 3).Font.Color = RGB(255, 0, 0)    '赤色(更新後)
+                        Else
+                            ApplyToImageFileForm.OptionButton2.Caption = Mid(.Cells(emptyRow, 7), 1, InStr(.Cells(emptyRow, 7), ":=") - 1) & "に追加する"
+                            ApplyToImageFileForm.Show   '画面表示
+                            
+                            '正常処理フラグが空欄の場合、処理を中止する
+                            If ThisWorkbook.Sheets("wk_Eno").Cells(1, 5) = "" Then
+                                End '処理中止
+                            Else
+                                '正常処理フラグ-> 1:同一機器番号の写真差し替え 2:末尾の写真空欄行に写真追加
+                                Select Case ThisWorkbook.Sheets("wk_Eno").Cells(1, 5)
+                                Case 1
+                                    'Masterデータ側に持込データ情報をコピーする
+                                    .Cells(i, 3) = .Cells(i, 7)
+                                    .Cells(i, 3).Font.Color = RGB(255, 0, 0)    '赤色(更新後)
+                                    .Cells(i + 1, 3) = .Cells(i + 1, 7) '写真枚数
+                                    .Cells(i + 2, 3) = .Cells(i + 2, 7) '写真名(複数可)
+                                    .Cells(i + 1, 3).Font.Color = RGB(255, 0, 0)    '赤色(更新後)
+                                    .Cells(i + 2, 3).Font.Color = RGB(255, 0, 0)    '赤色(更新後)
+                                Case 2
+                                    'Masterデータ側に持込データ情報をコピーする
+                                    .Cells(emptyRow, 3) = Replace(.Cells(i, 7), Mid(.Cells(i, 7), 1, InStr(.Cells(i, 7), ":=") - 1), Mid(.Cells(emptyRow, 7), 1, InStr(.Cells(emptyRow, 7), ":=") - 1))
+                                    .Cells(emptyRow, 3).Font.Color = RGB(255, 0, 0)    '赤色(更新後)
+                                    .Cells(emptyRow + 1, 3) = .Cells(i + 1, 7) '写真枚数
+                                    .Cells(emptyRow + 2, 3) = .Cells(i + 2, 7) '写真名(複数可)
+                                    .Cells(emptyRow + 1, 3).Font.Color = RGB(255, 0, 0)    '赤色(更新後)
+                                    .Cells(emptyRow + 2, 3).Font.Color = RGB(255, 0, 0)    '赤色(更新後)
+                                End Select
+                                ThisWorkbook.Sheets("wk_Eno").Cells(1, 5) = ""  '正常処理フラグクリア
+                            End If
+                        End If
                     End If
-                                
                 End Select
             Next i
                        
@@ -1058,7 +1423,11 @@ Sub applyPlist()
                         Set node(8) = node(7).appendChild(xmlDoc.createNode(NODE_ELEMENT, "key", ""))
                         node(8).Text = "imageInfo"
                         Set node(8) = node(7).appendChild(xmlDoc.createNode(NODE_ELEMENT, "string", ""))
-                        node(8).Text = arr14(k)  '画像テキスト情報
+                        If k <= UBound(arr14) Then
+                            node(8).Text = arr14(k)  '画像テキスト情報
+                        Else
+                            node(8).Text = ""
+                        End If
                     End If
                 Next k
                 
@@ -1095,8 +1464,10 @@ Sub applyPlist()
         .LoadFromFile (tempFile)
         fileData = .ReadText
         str = "<!DOCTYPE plist PUBLIC ""-//Apple//DTD PLIST 1.0//EN"" ""http://www.apple.com/DTDs/PropertyList-1.0.dtd"">"
-        find = Array("<?DOCTYPE?>", "<plist>", "><")
-        rep = Array(str, "<plist version=""1.0"">", ">" & vbLf & "<")
+'        find = Array("<?DOCTYPE?>", "<plist>", "><")
+'        rep = Array(str, "<plist version=""1.0"">", ">" & vbLf & "<")
+        find = Array("<?DOCTYPE?>", "<plist>", "><", "<string>" & vbLf & "</string>")
+        rep = Array(str, "<plist version=""1.0"">", ">" & vbLf & "<", "<string></string>")
         For i = 0 To UBound(find)
             fileData = Replace(fileData, find(i), rep(i))
         Next i
@@ -1339,7 +1710,7 @@ Sub applySampleList()
                     '.Hyperlinks.Add Anchor:=.Cells(cntRow, cntClm), Address:=targetImage, TextToDisplay:=imageName
                     
                     '画像ファイル名を画像テキスト情報で上書き
-                    .Cells(cntRow, cntClm) = arr14   '画像テキスト情報⇒シート2列目から順次右に書き出し
+                    .Cells(cntRow, cntClm) = arr14(j)   '画像テキスト情報⇒シート2列目から順次右に書き出し
                     If .Cells(cntRow, cntClm) = "" Then
                         .Cells(cntRow, cntClm) = "*"
                     End If
