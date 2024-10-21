@@ -1,5 +1,10 @@
 Attribute VB_Name = "Module1"
 Option Explicit
+Dim zipFileList
+Dim folderFileList
+Dim fileList
+Public f_zipFileListMatched
+
 Sub createMasterData()
     '**********************************
     '   Masterデータ作成処理
@@ -59,7 +64,7 @@ Sub createMasterData()
     '機器Noを「SampleList」シートに書き出し
     eqNoClm = 7
     toClm = 13
-    wtRow = 3
+    wtRow = 5
     With ThisWorkbook.Sheets("SampleList")
     
         '書き出しエリアクリア
@@ -227,7 +232,7 @@ Sub createPlist(eqNoClm)
     Dim xmlPI       As IXMLDOMProcessingInstruction
     Dim node(8)     As IXMLDOMNode
     Dim str         As String
-    Dim fileName    As String
+    Dim Filename    As String
     Dim fileData    As Variant
     Dim find()      As Variant
     Dim rep()       As Variant
@@ -239,7 +244,7 @@ Sub createPlist(eqNoClm)
     With ThisWorkbook.Sheets("SampleList")
     
         tempFile = "c:\\temp\\temp.plist"   '一時ファイル
-        fileName = ThisWorkbook.Path & "\Master\SampleList.plist" 'new plist(=Masterデータ)⇒Master(Excel)の同一階層の「Master」フォルダに出力される
+        Filename = ThisWorkbook.Path & "\Master\SampleList.plist" 'new plist(=Masterデータ)⇒Master(Excel)の同一階層の「Master」フォルダに出力される
                 
         'XMLファイル出力準備
         Set xmlDoc = New MSXML2.DOMDocument60
@@ -249,7 +254,7 @@ Sub createPlist(eqNoClm)
         Set node(2) = node(1).appendChild(xmlDoc.createNode(NODE_ELEMENT, "array", ""))
         
         '初期値
-        startRow = 3                                     '先頭行番号
+        startRow = 4                                     '先頭行番号
         maxRow = .Cells(1048576, eqNoClm).End(xlUp).Row  '最終行番号
         
         '上記情報をもとにXMLタグ情報を出力する
@@ -364,7 +369,7 @@ Sub createPlist(eqNoClm)
             .Type = adTypeBinary
             .Open
             outputSt.CopyTo outputSt2
-            .SaveToFile (fileName), 2
+            .SaveToFile (Filename), 2
             .Close
         End With
         .Close
@@ -384,9 +389,7 @@ Sub createZip()
     '**********************************
     
     Dim masterDir
-    Dim fileName
-    Dim toFolder
-    Dim zipSrcFolder
+    Dim Filename
 
     'Masterデータ(写真)フォルダ
     masterDir = ThisWorkbook.Path & "\Master\SampleList"
@@ -397,23 +400,10 @@ Sub createZip()
     End If
     
     '操作説明画像作成
-    fileName = masterDir & "\@readme.jpg"
+    Filename = masterDir & "\@readme.jpg"
     
     'JPGファイル新規作成処理
-    Call createJPG(fileName)
-
-    'ZIP圧縮ファイルの保存先フォルダ(＝Masterデータフォルダ「SampleList\」の一つ上の階層フォルダ)を指定する
-    toFolder = Mid(masterDir, 1, InStrRev(masterDir, "\") - 1)
-    
-    'ZIP圧縮したいフォルダ(=Masterデータフォルダ)を指定する
-    zipSrcFolder = masterDir
-    
-    'ZIP圧縮したいフォルダが存在する場合のみ、ZIP圧縮を行う
-    If Dir(zipSrcFolder, vbDirectory) <> "" Then
-    
-        'ZIP圧縮処理
-        Call ZipFileOrFolder2(zipSrcFolder)
-    End If
+    Call createJPG(Filename)
 
 End Sub
 Sub createJPG(fName)
@@ -436,12 +426,12 @@ Sub createJPG(fName)
     
     '一時データ作成＆画像貼り付け＆JPGファイルエクスポート
     Set cht = ThisWorkbook.Sheets("Menu").ChartObjects.Add(0, 0, rg.Width, rg.Height).Chart
-    cht.Export fileName:=fName, filtername:="JPG"
+    cht.Export Filename:=fName, filtername:="JPG"
     fileSize = FileLen(fName)
     
     Do Until FileLen(fName) > fileSize
         cht.Paste
-        cht.Export fileName:=fName, filtername:="JPG"
+        cht.Export Filename:=fName, filtername:="JPG"
         DoEvents
     Loop
     
@@ -566,14 +556,12 @@ Sub createCarryOutData()
     Dim strDate
     Dim strTestRoomNo
     Dim strReqNo
-    Dim fileName
+    Dim Filename
     Dim maxClm
     Dim plistPath_target
     Dim plistPath_master
     Dim zipPath_target
-    Dim zipPath_master
-    Dim folderPath_target
-    Dim folderPath_master, folderPath_master2
+    Dim folderPath_master
     Dim strYN
     Dim toFolder
     Dim zipSrcFolder
@@ -592,6 +580,17 @@ Sub createCarryOutData()
     Dim toRow
     Dim cntRow
     Dim matchRow
+    Dim folderPath_master_renamed
+    
+    '管理種類選択画面表示
+    ThisWorkbook.Sheets("Menu").Cells(1, 3) = ""
+    Load SelectModeForm
+    SelectModeForm.Show
+    
+    '「x」で画面を閉じた場合
+    If ThisWorkbook.Sheets("Menu").Cells(1, 3) = "" Then
+        End '処理中止
+    End If
     
     'サンプル業務番号入力(初回のみ)
     With ThisWorkbook.Sheets("SampleList")
@@ -614,20 +613,17 @@ Sub createCarryOutData()
     End If
     
     '持出データ名：SampleList_「日付」_「設備名」.plist
-    fileName = ThisWorkbook.Sheets("Menu").Cells(1, 3) & "_" & strDate & "_" & strTestRoomNo
+    Filename = ThisWorkbook.Sheets("Menu").Cells(1, 3) & "_" & strDate & "_" & strTestRoomNo
     
     '【PLIST名】Masterデータ: SampleList.plist
-    plistPath_target = ThisWorkbook.Path & "\" & fileName & ".plist"
+    plistPath_target = ThisWorkbook.Path & "\" & Filename & ".plist"
     plistPath_master = ThisWorkbook.Path & "\Master\SampleList.plist"
     
     '【ZIPファイル名】Masterデータ: SampleLost.zip
-    zipPath_target = ThisWorkbook.Path & "\" & fileName & ".zip"
-    zipPath_master = ThisWorkbook.Path & "\Master\SampleList.zip"
+    zipPath_target = ThisWorkbook.Path & "\" & Filename & ".zip"
     
     '【ZIP対象フォルダ名】Masterデータ: SampleLost\
-    folderPath_target = ThisWorkbook.Path & "\" & fileName
-    folderPath_master = ThisWorkbook.Path & "\Master\SampleList\"
-    folderPath_master2 = ThisWorkbook.Path & "\Master\SampleList"
+    folderPath_master = ThisWorkbook.Path & "\Master\SampleList"
     
     '【追加処理】PLIST-Masterデータ内のmainCategory名を「サンプル業務番号」に置き換える
     tempFile = "c:\\temp\\temp.plist"   '一時ファイル
@@ -668,48 +664,28 @@ Sub createCarryOutData()
         Kill tempFile   '一時ファイル削除
     End If
     
-    'zipファイルがある場合、「zip」Masterデータと「.plist」Masterデータをコピーして持出データを作成する
-    If Dir(zipPath_master) <> "" Then
-   
         '既存ファイルがない場合
-        If Dir(zipPath_target) = "" And Dir(plistPath_target) = "" Then
+        If Dir(plistPath_target) = "" Then
             
             '「.plist」をコピー
             FileCopy plistPath_master, plistPath_target
             
-            'zipファイル解凍処理
-            Call unzipFile(plistPath_master)
-            
-            '解凍フォルダリネーム & zip対象フォルダ圧縮
-            If Dir(folderPath_target, vbDirectory) <> "" Then
-                With CreateObject("Scripting.FileSystemObject")
-                    .DeleteFolder folderPath_target
-                End With
-            End If
-            
-            'Targetフォルダがない場合は新規作成する
-            If Dir(folderPath_target, vbDirectory) = "" Then
-                MkDir folderPath_target
-            End If
-            Set FSO = CreateObject("Scripting.FileSystemObject")
-            FSO.CopyFolder folderPath_master2, folderPath_target
-            Set FSO = Nothing
+            'SampleListフォルダ一時的リネーム
+            folderPath_master_renamed = ThisWorkbook.Path & "\Master\" & Filename
+            Name folderPath_master As folderPath_master_renamed
             
             'zip圧縮処理
-            Call ZipFileOrFolder(folderPath_target)
+            Call ZipFileOrFolder3(folderPath_master_renamed, zipPath_target)
             
-            '解凍フォルダ削除(フォルダが存在する場合のみ)
-            If Dir(folderPath_target, vbDirectory) <> "" Then
-                With CreateObject("Scripting.FileSystemObject")
-                    .DeleteFolder folderPath_target
-                End With
-            End If
+            'SampleListフォルダ一時的リネーム解除
+            folderPath_master_renamed = ThisWorkbook.Path & "\Master\" & Filename
+            Name folderPath_master_renamed As folderPath_master
         
         '既存ファイルがある場合
         Else
         
             '確認メッセージ表示
-            strYN = MsgBox("以下のファイルを上書きしますか？" & Chr(10) & plistPath_target & Chr(10) & zipPath_target, vbYesNo)
+            strYN = MsgBox("以下のファイルを上書きしますか？" & Chr(10) & plistPath_target, vbYesNo)
             
             '「Yes」の場合
             If strYN = vbYes Then
@@ -717,34 +693,16 @@ Sub createCarryOutData()
                 '「.plist」をコピー
                 FileCopy plistPath_master, plistPath_target
                 
-                'zipファイル解凍処理
-                Call unzipFile(plistPath_master)
-                
-                '解凍フォルダリネーム & zip対象フォルダ圧縮
-                If Dir(folderPath_target, vbDirectory) <> "" Then
-                    With CreateObject("Scripting.FileSystemObject")
-                        .DeleteFolder folderPath_target
-                    End With
-                End If
-                
-                'Targetフォルダがない場合は新規作成する
-                If Dir(folderPath_target, vbDirectory) = "" Then
-                    MkDir folderPath_target
-                End If
-                
-                Set FSO = CreateObject("Scripting.FileSystemObject")
-                FSO.CopyFolder folderPath_master2, folderPath_target
-                Set FSO = Nothing
+                'SampleListフォルダ一時的リネーム
+                folderPath_master_renamed = ThisWorkbook.Path & "\Master\" & Filename
+                Name folderPath_master As folderPath_master_renamed
                 
                 'zip圧縮処理
-                Call ZipFileOrFolder(folderPath_target)
+                Call ZipFileOrFolder3(folderPath_master_renamed, zipPath_target)
                 
-                '解凍フォルダ削除(フォルダが存在する場合のみ)
-                If Dir(folderPath_target, vbDirectory) <> "" Then
-                    With CreateObject("Scripting.FileSystemObject")
-                        .DeleteFolder folderPath_target
-                    End With
-                End If
+                'SampleListフォルダ一時的リネーム解除
+                folderPath_master_renamed = ThisWorkbook.Path & "\Master\" & Filename
+                Name folderPath_master_renamed As folderPath_master
                 
             '「No」の場合
             Else
@@ -762,11 +720,6 @@ Sub createCarryOutData()
         'PLISTデータ読込処理
         Call loadPlist(20, 1)
         
-    'zipファイルがない場合、「.plist」Masterデータをコピーして持出データを作成する
-    Else
-        FileCopy plistPath_master, plistPath_target
-    End If
-    
     'Master(Excel)保存
     Set wb = ThisWorkbook
     If wb.ReadOnly = True Then
@@ -810,6 +763,18 @@ Sub applyCarryInData()
     Dim oldFileName, newFileName
     Dim oldFilePath, newFilePath
     Dim carryInFileName
+    Dim zipFilePath
+    Dim folderPath
+
+    '管理種類選択画面表示
+    ThisWorkbook.Sheets("Menu").Cells(1, 3) = ""
+    Load SelectModeForm
+    SelectModeForm.Show
+    
+    '「x」で画面を閉じた場合
+    If ThisWorkbook.Sheets("Menu").Cells(1, 3) = "" Then
+        End '処理中止
+    End If
     
     plistPath_master = ThisWorkbook.Path & "\Master\SampleList.plist"         '初回PLIST-Masterデータ(.plist)
     
@@ -834,6 +799,17 @@ Sub applyCarryInData()
         MsgBox ("持込データはMaster(Excel)ファイルと同じフォルダ内のものを指定してください" & Chr(10) & "Master(Excel)ファイル場所: " & ThisWorkbook.Path)
         Exit Sub
     End If
+    
+    'Progess Bar---------------------------------------------------------
+    ProgressBarForm.Show vbModeless
+    ProgressBarForm.ProgressBar1.Value = 1 / 50 * 100
+    ProgressBarForm.Label1.Caption = "処理開始"
+    ProgressBarForm.Label2.Caption = "処理中---PLIST-持込データ解析処理"
+    ProgressBarForm.Label3.Caption = "未実施---ZIP-持込データ解凍処理"
+    ProgressBarForm.Label4.Caption = "未実施---PLIST更新反映処理"
+    ProgressBarForm.Label5.Caption = "未実施---Master(Excel)更新反映処理"
+    ProgressBarForm.Repaint
+    '--------------------------------------------------------------------
     
     'PLIST-持込データ読込処理
     Call loadPlist(startRow, startColumn)
@@ -860,22 +836,97 @@ Sub applyCarryInData()
     startRow = 20
     startColumn = 1
     Call loadPlist(startRow, startColumn)
-    
-    'ZIP-Masterデータ解凍処理
-    Call unzipFileMaster
-    
+       
     'PLIST-Master-持込データ比較処理
     Call comparePlist
     
-    'ZIP-持込データ解凍処理
-    Call unzipFileUpdated
+    'Progess Bar--------------------------------------------------------
+    ProgressBarForm.ProgressBar1.Value = 5 / 50 * 100
+    ProgressBarForm.Label1.Caption = "処理完了(10%)"
+    ProgressBarForm.Label2.Caption = "完了-----PLIST-持込データ解析処理"
+    ProgressBarForm.Repaint
+    '-------------------------------------------------------------------
+
+    zipFilePath = Replace(ThisWorkbook.Sheets("wk_Eno").Cells(1, 7), ".plist", ".zip")
+    folderPath = ThisWorkbook.Path & "\Master\SampleList"
     
+    f_zipFileListMatched = 0
+    fileList = 0
+    Call GetFilesInZip(zipFilePath)
+    zipFileList = fileList
+    fileList = 0
+    Call GetFilesInZip(folderPath)
+    folderFileList = fileList
+    
+    If zipFileList = folderFileList Then
+        f_zipFileListMatched = 1
+        '処理スルー
+
+        'Progress bar-------------------------------------------------------
+        ProgressBarForm.ProgressBar1.Value = 30 / 50 * 100
+        ProgressBarForm.Label1.Caption = "処理完了(60%)"
+        ProgressBarForm.Label3.Caption = "スキップ---ZIP-持込データ解凍処理"
+        ProgressBarForm.Repaint
+        '-------------------------------------------------------------------
+    
+    Else
+        
+        'Progress Bar-----------------------------------------------------
+        ProgressBarForm.ProgressBar1.Value = 6 / 50 * 100
+        ProgressBarForm.Label1.Caption = "処理完了(10%)"
+        ProgressBarForm.Label3.Caption = "処理中---ZIP-持込データ解凍処理"
+        ProgressBarForm.Repaint
+        '-----------------------------------------------------------------
+        
+        'ZIP-持込データ解凍処理
+        'MsgBox (Len(zipFileList))
+        Call unzipFileUpdated
+        
+        'Progress Bar-----------------------------------------------------
+        ProgressBarForm.ProgressBar1.Value = 30 / 50 * 100
+        ProgressBarForm.Label1.Caption = "処理完了(60%)"
+        ProgressBarForm.Label3.Caption = "完了-----ZIP-持込データ解凍処理"
+        ProgressBarForm.Repaint
+        '-----------------------------------------------------------------
+        
+    End If
+
+    'Progress Bar------------------------------------------------
+    ProgressBarForm.ProgressBar1.Value = 31 / 50 * 100
+    ProgressBarForm.Label1.Caption = "処理完了(60%)"
+    ProgressBarForm.Label4.Caption = "処理中---PLIST更新反映処理"
+    ProgressBarForm.Repaint
+    '------------------------------------------------------------
+
     'PLIST仮マージ処理
     Call mergePlist
     
-    'PLIST＆ZIP更新反映処理
-    Call applyPlistAndZip
+    'tempフォルダ有無チェック ⇒ない場合、処理を終了する
+    If Dir("c:\temp", vbDirectory) = "" Then
+        MsgBox ("「C:\temp」フォルダを作成後、再度実行してください")
+        Exit Sub
+    End If
+    '「機器番号wkシート」
+    With ThisWorkbook.Sheets("wk_Eno")
+    
+        'PLIST-MasterデータパスとPLIST-持込データパスが同一の場合は更新処理不要の為、処理を終了する
+        If .Cells(1, 3) = .Cells(1, 7) Then
+            MsgBox ("持込データのPLISTがMasterと同一の為更新なし")
+            Exit Sub
+        End If
+    End With
 
+    'PLIST更新反映処理
+    Call applyPlist
+
+    'Progress Bar--------------------------------------------------------
+    ProgressBarForm.ProgressBar1.Value = 35 / 50 * 100
+    ProgressBarForm.Label1.Caption = "処理完了(70%)"
+    ProgressBarForm.Label4.Caption = "完了-----PLIST更新反映処理"
+    ProgressBarForm.Label5.Caption = "処理中---Master(Excel)更新反映処理"
+    ProgressBarForm.Repaint
+    '--------------------------------------------------------------------
+    
     'Master(Excel)更新反映処理
     Call applySampleList
        
@@ -920,6 +971,13 @@ Sub applyCarryInData()
         End If
     End If
     
+    'Progress Bar--------------------------------------------------------
+    ProgressBarForm.ProgressBar1.Value = 50 / 50 * 100
+    ProgressBarForm.Label1.Caption = "処理完了(100%)"
+    ProgressBarForm.Label5.Caption = "完了-----Master(Excel)更新反映処理"
+    ProgressBarForm.Repaint
+    '--------------------------------------------------------------------
+
     'Master(Excel)保存
     Set wb = ThisWorkbook
     If wb.ReadOnly = True Then
@@ -940,8 +998,63 @@ Sub applyCarryInData()
     End If
     
     '終了処理
+    'Progress Bar---------
+    Unload ProgressBarForm
+    '---------------------
+    
     MsgBox ("持込データ処理完了")
 End Sub
+Sub GetFilesInZip(zipPath)
+    '**********************************
+    '   ZIP内ファイルリスト取得処理
+    '
+    '   Created by: Takashi Kawamoto
+    '   Created on: 2024/10/7
+    '**********************************
+    Dim objShell As New Shell32.Shell
+    Dim objFolder As Shell32.Folder
+    
+    'Zipファイルまたは通常フォルダに含まれるファイルリストを取得する
+    Set objFolder = objShell.Namespace(zipPath)
+    
+    'ZIP内ファイルリスト再帰取得処理
+    Call GetFiles(objFolder)
+    
+    Set objShell = Nothing
+    Set objFolder = Nothing
+End Sub
+Sub GetFiles(objFolder As Shell32.Folder)
+    '**********************************
+    '   ZIP内ファイルリスト再帰取得処理
+    '
+    '   Created by: Takashi Kawamoto
+    '   Created on: 2024/10/7
+    '**********************************
+    Dim objFile As Shell32.FolderItem
+    
+    'フォルダオブジェクト内のファイルオブジェクトについて処理を繰り返す
+    For Each objFile In objFolder.Items
+    
+        'ファイルオブジェクの種類がフォルダなら、再帰処理を実行する
+        If objFile.IsFolder Then
+        
+            'ZIP内ファイルリスト再帰取得処理
+            Call GetFiles(objFile.GetFolder)
+            
+        Else
+        
+            '縮小版キャッシュファイル以外の場合
+            If objFile.Name <> "Thumbs.db" And objFile.Name <> "@readme.jpg" Then
+            
+                '全ファイル名(タイムスタンプ)を加算したものを取得する
+                fileList = fileList + CLngLng(Mid(objFile.Name, 1, 15))
+            End If
+        End If
+    Next objFile
+    
+    Set objFile = Nothing
+End Sub
+
 
 
 
