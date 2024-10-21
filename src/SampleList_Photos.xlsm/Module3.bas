@@ -1,5 +1,17 @@
 Attribute VB_Name = "Module3"
 Option Explicit
+Sub switchMode()
+    '**********************************
+    '   モード切替処理
+    '
+    '   Created by: Takashi Kawamoto
+    '   Created on: 2024/9/27
+    '**********************************
+    
+    'DBシート更新処理
+    Call updateDBSheet(2)
+    
+End Sub
 Sub output()
     '**********************************
     '   帳票出力処理
@@ -18,7 +30,7 @@ Sub output()
     Dim strTargetEqNo4 As Variant
     Dim i, j, prNo, prNoDigit
         
-    stRow = 3       'SampleListシート開始行番号
+    stRow = 5       'SampleListシート開始行番号
     stRow_wb = 4    '帳票出力ファイル開始行番号
     With ThisWorkbook.Sheets("SampleList")
         maxRow = .Cells(stRow, 6).End(xlDown).Row - 1   'E番号体系の最終行番号
@@ -46,20 +58,20 @@ Sub output()
                     '対象定文字列の末尾がハイフン(＝終了機器番号待ち状態)の場合
                     If Right(strTargetEqNo, 1) = "-" Then
                     
-                        '終了機器番号として末尾に機器番号(＝行番号から2引いたもの(デフォルト))を追加
-                        strTargetEqNo = strTargetEqNo & (i - 2)
+                        '終了機器番号として末尾に機器番号(＝行番号から3引いたもの(デフォルト))を追加
+                        strTargetEqNo = strTargetEqNo & (i - (stRow - 1))
                         
                     '対象文字列の末尾がハイフン以外(＝ひとつ前の機器番号が入っている状態)の場合
                     Else
-                        'ひとつ前の機器番号(＝行番号から2引いたもの(デフォルト))の桁数に応じて、末尾の終了機器番号をひとつ前の機器番号から今回機器番号に入れ替える
-                        If prNo - 2 >= 10 Then
-                            If prNo - 2 >= 100 Then
+                        'ひとつ前の機器番号(＝行番号から3引いたもの(デフォルト))の桁数に応じて、末尾の終了機器番号をひとつ前の機器番号から今回機器番号に入れ替える
+                        If prNo - (stRow - 1) >= 10 Then
+                            If prNo - (stRow - 1) >= 100 Then
                                 prNoDigit = 3
                             Else
                                 prNoDigit = 2
                             End If
                         End If
-                        strTargetEqNo = Left(strTargetEqNo, Len(strTargetEqNo) - prNoDigit) & (i - 2)
+                        strTargetEqNo = Left(strTargetEqNo, Len(strTargetEqNo) - prNoDigit) & (i - (stRow - 1))
                     End If
                     prNo = i    '前回番号セット
                     
@@ -68,7 +80,7 @@ Sub output()
                 
                     '初回時は「機器番号」＋「ハイフン」を対象文字列にセットする
                     If strTargetEqNo = "" Then
-                        strTargetEqNo = (i - 2) & "-"
+                        strTargetEqNo = (i - (stRow - 1)) & "-"
                         
                     '2回目以降
                     Else
@@ -77,13 +89,13 @@ Sub output()
                         If Right(strTargetEqNo, 1) = "-" Then
                         
                             '対象文字列の末尾のハイフンを削除した文字列に「カンマ」と「機器番号」と「ハイフン」を追加したものに入れ替える
-                            strTargetEqNo = Left(strTargetEqNo, Len(strTargetEqNo) - 1) & "," & (i - 2) & "-"
+                            strTargetEqNo = Left(strTargetEqNo, Len(strTargetEqNo) - 1) & "," & (i - (stRow - 1)) & "-"
                             
                         '対象文字列の末尾がハイフン以外の場合
                         Else
                         
                             '対象文字列の末尾に「カンマ」と「機器番号」と「ハイフン」を追加する
-                            strTargetEqNo = strTargetEqNo & "," & (i - 2) & "-"
+                            strTargetEqNo = strTargetEqNo & "," & (i - (stRow - 1)) & "-"
                         End If
                     End If
                     prNo = i    '前回番号セット
@@ -115,9 +127,9 @@ Sub output()
         
             '「ハイフン」前後の開始番号、終了番号を割り出し、同開始番号から同終了番号まで連続した機器番号をカンマ区切りで出力する
             wkEqNo = Split(strTargetEqNo2(i), "-")
-            fromEqNo = Int(wkEqNo(0))
-            toEqNo = Int(wkEqNo(1))
-            For j = Int(fromEqNo) To Int(toEqNo)
+            fromEqNo = CInt(wkEqNo(0))
+            toEqNo = CInt(wkEqNo(1))
+            For j = CInt(fromEqNo) To CInt(toEqNo)
                 strTargetEqNo3 = strTargetEqNo3 & "," & j
             Next j
             
@@ -187,7 +199,7 @@ Sub output()
         For i = 0 To UBound(strTargetEqNo4)
         
             'SampleListの対象機器番号行情報を、そのまま新規ワークブックの該当行にコピーする
-            ThisWorkbook.Sheets("SampleList").Range(ThisWorkbook.Sheets("SampleList").Cells(strTargetEqNo4(i) + 2, 1), ThisWorkbook.Sheets("SampleList").Cells(strTargetEqNo4(i) + 2, 5)).Copy Destination:=.Cells(stRow_wb + i, 1)
+            ThisWorkbook.Sheets("SampleList").Range(ThisWorkbook.Sheets("SampleList").Cells(strTargetEqNo4(i) + (stRow - 1), 1), ThisWorkbook.Sheets("SampleList").Cells(strTargetEqNo4(i) + (stRow - 1), 5)).Copy Destination:=.Cells(stRow_wb + i, 1)
             
             '新規ワークブック出力行番号をインクリメント
             maxRow_wb = stRow_wb + i
@@ -308,7 +320,7 @@ Sub output()
             .PrintQuality = 1200
             .CenterHorizontally = False
             .CenterVertically = False
-            .Orientation = xlPortrait
+            .orientation = xlPortrait
             .Draft = False
             .PaperSize = xlPaperA4
             .FirstPageNumber = xlAutomatic
@@ -337,5 +349,4 @@ Sub output()
         End With
         Application.PrintCommunication = True
     End With
-    
 End Sub
