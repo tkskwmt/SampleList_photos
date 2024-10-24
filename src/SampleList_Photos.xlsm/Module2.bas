@@ -123,7 +123,7 @@ Sub selectFile(startRow, startColumn, isMaster)
             If isMaster = True Then
                 
                 '選択ファイルパスが本Master(Excel)格納フォルダ内の「Master」フォルダと一致する、かつ、選択ファイルが「.plist」に該当する場合のみ処理する
-                If Left(.SelectedItems(1), InStrRev(.SelectedItems(1), "\") - 1) = ThisWorkbook.Path & "\Master" And InStr(.SelectedItems(1), ".plist") > 0 Then
+                If Left(Replace(.SelectedItems(1), "\\10.6.2.20\emces\", "O:\"), InStrRev(.SelectedItems(1), "\") - 1) = ThisWorkbook.Path & "\Master" And InStr(.SelectedItems(1), ".plist") > 0 Then
                     ThisWorkbook.Sheets("wk_Eno").Cells(1, startColumn + 2) = .SelectedItems(1)
                     
                 '上記を満たさない場合、処理を終了する

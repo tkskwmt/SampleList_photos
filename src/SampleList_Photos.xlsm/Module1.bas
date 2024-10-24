@@ -664,9 +664,32 @@ Sub createCarryOutData()
         Kill tempFile   '一時ファイル削除
     End If
     
-        '既存ファイルがない場合
-        If Dir(plistPath_target) = "" Then
-            
+    '既存ファイルがない場合
+    If Dir(plistPath_target) = "" Then
+        
+        '「.plist」をコピー
+        FileCopy plistPath_master, plistPath_target
+        
+        'SampleListフォルダ一時的リネーム
+        folderPath_master_renamed = ThisWorkbook.Path & "\Master\" & Filename
+        Name folderPath_master As folderPath_master_renamed
+        
+        'zip圧縮処理
+        Call ZipFileOrFolder3(folderPath_master_renamed, zipPath_target)
+        
+        'SampleListフォルダ一時的リネーム解除
+        folderPath_master_renamed = ThisWorkbook.Path & "\Master\" & Filename
+        Name folderPath_master_renamed As folderPath_master
+    
+    '既存ファイルがある場合
+    Else
+    
+        '確認メッセージ表示
+        strYN = MsgBox("以下のファイルを上書きしますか？" & Chr(10) & plistPath_target, vbYesNo)
+        
+        '「Yes」の場合
+        If strYN = vbYes Then
+        
             '「.plist」をコピー
             FileCopy plistPath_master, plistPath_target
             
@@ -680,46 +703,15 @@ Sub createCarryOutData()
             'SampleListフォルダ一時的リネーム解除
             folderPath_master_renamed = ThisWorkbook.Path & "\Master\" & Filename
             Name folderPath_master_renamed As folderPath_master
-        
-        '既存ファイルがある場合
+            
+        '「No」の場合
         Else
-        
-            '確認メッセージ表示
-            strYN = MsgBox("以下のファイルを上書きしますか？" & Chr(10) & plistPath_target, vbYesNo)
-            
-            '「Yes」の場合
-            If strYN = vbYes Then
-            
-                '「.plist」をコピー
-                FileCopy plistPath_master, plistPath_target
-                
-                'SampleListフォルダ一時的リネーム
-                folderPath_master_renamed = ThisWorkbook.Path & "\Master\" & Filename
-                Name folderPath_master As folderPath_master_renamed
-                
-                'zip圧縮処理
-                Call ZipFileOrFolder3(folderPath_master_renamed, zipPath_target)
-                
-                'SampleListフォルダ一時的リネーム解除
-                folderPath_master_renamed = ThisWorkbook.Path & "\Master\" & Filename
-                Name folderPath_master_renamed As folderPath_master
-                
-            '「No」の場合
-            Else
-                MsgBox ("処理を中止します")
-                Exit Sub
-            End If
-            
+            MsgBox ("処理を中止します")
+            Exit Sub
         End If
         
-        '持出データのチェックボックス情報を指定試験項目のみに更新する
-        With ThisWorkbook.Sheets("wk_Eno")
-            .Cells(1, 3) = plistPath_target  '持出データのフォルダパスを指定
-        End With
-        
-        'PLISTデータ読込処理
-        Call loadPlist(20, 1)
-        
+    End If
+
     'Master(Excel)保存
     Set wb = ThisWorkbook
     If wb.ReadOnly = True Then
