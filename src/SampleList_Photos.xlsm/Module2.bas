@@ -896,7 +896,8 @@ Sub mergePlist()
                             emptyRow = 0
                             For j = 20 To .Cells(1048576, 2).End(xlUp).Row
                                 If IsNumeric(.Cells(j, 3)) = True Then
-                                    If .Cells(j, 3) > 0 Then
+                                    '機器Noの接頭語は「E」または「M」の1字を想定
+                                    If Left(.Cells(j + 3, 3), 1) = Left(.Cells(i, 7), 1) And .Cells(j, 3) > 0 Then
                                         emptyRow = j + 3
                                     End If
                                 End If
@@ -1063,7 +1064,8 @@ Sub mergePlist()
                             emptyRow = 0
                             For j = 20 To .Cells(1048576, 2).End(xlUp).Row
                                 If IsNumeric(.Cells(j, 3)) = True Then
-                                    If .Cells(j, 3) > 0 Then
+                                    '機器Noの接頭語は「E」または「M」の1字を想定
+                                    If Left(.Cells(j + 3, 3), 1) = Left(.Cells(i, 7), 1) And .Cells(j, 3) > 0 Then
                                         emptyRow = j + 3
                                     End If
                                 End If
