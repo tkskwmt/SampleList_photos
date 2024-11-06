@@ -1523,6 +1523,7 @@ Sub applySampleList()
     Dim dbSheet
     Dim maxClm
     Dim startClmIni
+    Dim cnt, prCnt, nxCnt
     
     '*************************
     '機器写真情報書き出し処理
@@ -1754,7 +1755,25 @@ Sub applySampleList()
                         End If
                         
                         '該当セルにクリップボード画像を貼り付ける
-                        .Paste Destination:=.Cells(cntRow, cntClm)
+                        '---クリップボード同期処理対策----------------------------------------------------------------------
+                        cnt = 0
+                        prCnt = .Shapes.Count
+                        nxCnt = .Shapes.Count
+                        Do Until nxCnt > prCnt Or cnt > 100
+                            On Error Resume Next
+                            .Paste Destination:=.Cells(cntRow, cntClm)
+                            On Error GoTo 0
+                            nxCnt = .Shapes.Count
+                            cnt = cnt + 1
+                        Loop
+                        If cnt > 1 And nxCnt > prCnt Then
+                            'MsgBox "Pasteエラー回復" & cnt & "回目"
+                        End If
+                        If cnt > 100 And nxCnt = prCnt Then
+                            MsgBox "Pasteエラー:" & cnt & "回目"
+                            .Paste Destination:=.Cells(cntRow, cntClm)   '再度リカバリを試みる（うまくできなければ処理スルー)
+                        End If
+                        '---------------------------------------------------------------------------------------------------
                         .Hyperlinks.Add Anchor:=Selection.ShapeRange.Item(1), Address:=targetImage
                         '貼付画像に識別可能な名前を付ける
                         With Selection
