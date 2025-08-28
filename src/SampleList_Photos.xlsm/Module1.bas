@@ -417,12 +417,32 @@ Sub createJPG(fName)
     Dim rg
     Dim cht As Chart
     Dim fileSize
+    Dim cnt
     
     '操作説明エリアコピー
     With ThisWorkbook.Sheets("Menu")
         Set rg = .Range(.Cells(50, 1), .Cells(100, 26))
     End With
-    rg.CopyPicture
+    
+    Application.CutCopyMode = False 'クリップボードクリア
+    On Error Resume Next
+    rg.CopyPicture 'クリップボードコピー
+    On Error GoTo 0
+    
+    'クリップボードコピーエラーリカバリ処理
+    If Err.Number <> 0 Then
+        'リトライ
+        cnt = 1
+        Do Until Err.Number = 0 Or cnt > 10
+            On Error Resume Next
+            rg.CopyPicture
+            On Error GoTo 0
+            cnt = cnt + 1
+            If Err.Number = 0 Then
+                MsgBox ("クリップボードコピー処理リトライ" & cnt & "回目成功")
+            End If
+        Loop
+    End If
     
     '一時データ作成＆画像貼り付け＆JPGファイルエクスポート
     Set cht = ThisWorkbook.Sheets("Menu").ChartObjects.Add(0, 0, rg.Width, rg.Height).Chart
