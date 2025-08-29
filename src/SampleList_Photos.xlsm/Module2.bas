@@ -417,7 +417,29 @@ Sub unzipFileUpdated()
     Call unzipFile2(zipFilePath, toFolderPath)
     
     'SampleListフォルダ一時的リネーム解除
+    On Error Resume Next
     Name folderPath_master_renamed As folderPath_master
+    On Error GoTo 0
+    
+    'SampleListフォルダ一時的リネーム解除エラーリカバリ処理
+    If Dir(folderPath_master, vbDirectory) = "" Then
+        'リトライ
+        cnt = 1
+        Do Until Dir(folderPath_master, vbDirectory) <> "" Or cnt > 10
+            On Error Resume Next
+            Name folderPath_master_renamed As folderPath_master
+            On Error GoTo 0
+            cnt = cnt + 1
+            If Dir(folderPath_master, vbDirectory) <> "" Then
+                MsgBox ("SampleListフォルダ一時的リネーム解除エラーリカバリ" & cnt & "回目")
+            Else
+                If cnt > 10 Then
+                    '自動リカバリできない為、次行で処理が止まる
+                    Name folderPath_master_renamed As folderPath_master
+                End If
+            End If
+        Loop
+    End If
     
 End Sub
 Sub unzipFile2(zipFilePath, toFolderPath)

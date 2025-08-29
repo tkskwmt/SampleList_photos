@@ -440,6 +440,11 @@ Sub createJPG(fName)
             cnt = cnt + 1
             If Err.Number = 0 Then
                 MsgBox ("クリップボードコピー処理リトライ" & cnt & "回目成功")
+            Else
+                If cnt > 10 Then
+                    '自動リカバリできない為、次行で処理が止まる
+                    rg.CopyPicture
+                End If
             End If
         Loop
     End If
