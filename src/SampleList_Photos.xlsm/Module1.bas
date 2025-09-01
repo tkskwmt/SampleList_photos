@@ -598,7 +598,7 @@ Sub createCarryOutData()
     Dim wb As Workbook
     Dim oldFileName, newFileName
     Dim oldFilePath, newFilePath
-    Dim FSO As Object
+    Dim fso As Object
     Dim arr_ReqNo As Variant
     Dim maxRow, maxRow3
     Dim fromRow
@@ -782,6 +782,14 @@ Sub applyCarryInData()
     Dim carryInFileName
     Dim zipFilePath
     Dim folderPath
+
+    'ImageMagickインストール有無チェック
+    If IsImageMagickInstalled() Then
+        '処理なし
+    Else
+        MsgBox "ImageMagickがインストールされていません。処理を中止します。"
+        Exit Sub
+    End If
 
     '管理種類選択画面表示
     ThisWorkbook.Sheets("Menu").Cells(1, 3) = ""
@@ -1021,6 +1029,30 @@ Sub applyCarryInData()
     
     MsgBox ("持込データ処理完了")
 End Sub
+Function IsImageMagickInstalled() As Boolean
+    '*****************************************
+    '   ImageMagickインストール有無チェック
+    '
+    '   Created by: Takashi Kawamoto
+    '   Created on: 2025/9/1
+    '*****************************************
+    Dim fso As Object
+    Set fso = CreateObject("Scripting.FileSystemObject")
+
+    ' ImageMagickの一般的なインストールパス
+    Dim paths As Variant
+    paths = Array("C:\Program Files\ImageMagick-7.1.1-Q16-HDRI\magick.exe")
+
+    Dim i As Integer
+    For i = LBound(paths) To UBound(paths)
+        If fso.FileExists(paths(i)) Then
+            IsImageMagickInstalled = True
+            Exit Function
+        End If
+    Next i
+
+    IsImageMagickInstalled = False
+End Function
 Sub GetFilesInZip(zipPath)
     '**********************************
     '   ZIP内ファイルリスト取得処理

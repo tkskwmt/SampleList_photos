@@ -400,6 +400,7 @@ Sub unzipFileUpdated()
     Dim posFld
     Dim zipFilePath
     Dim toFolderPath
+    Dim cnt
         
     'PLIST-持込データパス取得
     plistPath = ThisWorkbook.Sheets("wk_Eno").Cells(1, 7)
