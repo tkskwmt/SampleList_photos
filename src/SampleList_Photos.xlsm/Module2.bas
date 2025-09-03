@@ -410,8 +410,31 @@ Sub unzipFileUpdated()
     posFld = InStrRev(plistPath, "\")
     Filename = Replace(Mid(plistPath, posFld + 1), ".plist", "")
     folderPath_master_renamed = ThisWorkbook.Path & "\Master\" & Filename
+    On Error Resume Next
     Name folderPath_master As folderPath_master_renamed
-
+    On Error GoTo 0
+    
+    'SampleListフォルダ一時的リネームエラーリカバリ処理
+    If Dir(folderPath_master_renamed, vbDirectory) = "" Then
+        'リトライ
+        cnt = 1
+        Do Until Dir(folderPath_master_renamed, vbDirectory) <> "" Or cnt > 10
+            On Error Resume Next
+            Name folderPath_master As folderPath_master_renamed
+            On Error GoTo 0
+            cnt = cnt + 1
+            If Dir(folderPath_master_renamed, vbDirectory) <> "" Then
+                MsgBox ("SampleListフォルダ一時的リネームエラーリカバリ" & cnt & "回目")
+            Else
+                If cnt > 10 Then
+                    '自動リカバリできない為、次行で処理が止まる
+                    MsgBox ("SampleListフォルダがロックされている可能性があります。トラブルシューティングに従って対応してください。")
+                    Name folderPath_master As folderPath_master_renamed
+                End If
+            End If
+        Loop
+    End If
+    
     'ZIPファイル解凍処理
     zipFilePath = Replace(plistPath, ".plist", ".zip")
     toFolderPath = ThisWorkbook.Path & "\Master"
@@ -436,6 +459,7 @@ Sub unzipFileUpdated()
             Else
                 If cnt > 10 Then
                     '自動リカバリできない為、次行で処理が止まる
+                    MsgBox ("SampleListフォルダがロックされている可能性があります。トラブルシューティングに従って対応してください。")
                     Name folderPath_master_renamed As folderPath_master
                 End If
             End If
