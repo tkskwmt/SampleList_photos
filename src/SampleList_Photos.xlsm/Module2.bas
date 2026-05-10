@@ -1560,7 +1560,7 @@ Sub applySampleList()
     Dim arr16 As Variant
     Dim f_noImageReplaced
     Dim arr4, arr5, arr6, arr7, arr8, arr8t, arr9, arr14 As Variant
-    Dim i, i2, i3, j, k, m, n, p, r
+    Dim i, i2, j, k, m, n, p, r
     Dim targetImage, imageName
     Dim cntColumn
     Dim cnt_del
