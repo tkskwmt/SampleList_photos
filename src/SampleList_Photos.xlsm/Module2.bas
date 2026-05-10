@@ -410,29 +410,12 @@ Sub unzipFileUpdated()
     posFld = InStrRev(plistPath, "\")
     Filename = Replace(Mid(plistPath, posFld + 1), ".plist", "")
     folderPath_master_renamed = ThisWorkbook.Path & "\Master\" & Filename
-    On Error Resume Next
-    Name folderPath_master As folderPath_master_renamed
-    On Error GoTo 0
-    
-    'SampleListフォルダ一時的リネームエラーリカバリ処理
-    If Dir(folderPath_master_renamed, vbDirectory) = "" Then
-        'リトライ
-        cnt = 1
-        Do Until Dir(folderPath_master_renamed, vbDirectory) <> "" Or cnt > 10
-            On Error Resume Next
-            Name folderPath_master As folderPath_master_renamed
-            On Error GoTo 0
-            cnt = cnt + 1
-            If Dir(folderPath_master_renamed, vbDirectory) <> "" Then
-                MsgBox ("SampleListフォルダ一時的リネームエラーリカバリ" & cnt & "回目")
-            Else
-                If cnt > 10 Then
-                    '自動リカバリできない為、次行で処理が止まる
-                    MsgBox ("SampleListフォルダがロックされている可能性があります。トラブルシューティングに従って対応してください。")
-                    Name folderPath_master As folderPath_master_renamed
-                End If
-            End If
-        Loop
+
+    ' RobustRenameがFalseを返した（15秒粘ってもダメだった）場合、
+    ' あえてOn Errorを外した状態でNameステートメントを実行し、VBAエラーを発生させる。
+    If Not RobustRename(folderPath_master, folderPath_master_renamed) Then
+        MsgBox "SampleListフォルダの一時的リネームに失敗しました。SampleListフォルダがロックされている可能性があります。トラブルシューティングに従って対応してください。", vbCritical
+        Name folderPath_master As folderPath_master_renamed ' ここでデバッガを起動させる
     End If
     
     'ZIPファイル解凍処理
@@ -441,32 +424,56 @@ Sub unzipFileUpdated()
     Call unzipFile2(zipFilePath, toFolderPath)
     
     'SampleListフォルダ一時的リネーム解除
-    On Error Resume Next
-    Name folderPath_master_renamed As folderPath_master
-    On Error GoTo 0
-    
-    'SampleListフォルダ一時的リネーム解除エラーリカバリ処理
-    If Dir(folderPath_master, vbDirectory) = "" Then
-        'リトライ
-        cnt = 1
-        Do Until Dir(folderPath_master, vbDirectory) <> "" Or cnt > 10
-            On Error Resume Next
-            Name folderPath_master_renamed As folderPath_master
-            On Error GoTo 0
-            cnt = cnt + 1
-            If Dir(folderPath_master, vbDirectory) <> "" Then
-                MsgBox ("SampleListフォルダ一時的リネーム解除エラーリカバリ" & cnt & "回目")
-            Else
-                If cnt > 10 Then
-                    '自動リカバリできない為、次行で処理が止まる
-                    MsgBox ("SampleListフォルダがロックされている可能性があります。トラブルシューティングに従って対応してください。")
-                    Name folderPath_master_renamed As folderPath_master
-                End If
-            End If
-        Loop
+    If Not RobustRename(folderPath_master_renamed, folderPath_master) Then
+        MsgBox "SampleListフォルダの一時的リネーム解除に失敗しました。SampleListフォルダがロックされている可能性があります。トラブルシューティングに従って対応してください。", vbExclamation
+        Name folderPath_master_renamed As folderPath_master ' ここでデバッガを起動させる
     End If
     
 End Sub
+Function RobustRename(oldPath, newPath) As Boolean
+    Dim cnt As Integer
+    Dim success As Boolean
+    Dim thumbsPath As String
+    
+    ' Thumbs.dbのパスを生成
+    thumbsPath = oldPath & "\Thumbs.db"
+    
+    On Error Resume Next
+    For cnt = 1 To 15 ' 最大15回（約15秒）リトライ
+        Err.Clear
+        Name oldPath As newPath
+        
+        If Err.Number = 0 Then
+            success = True
+            Exit For
+        End If
+        
+        ' 5回失敗したらエクスプローラー再起動 ＋ Thumbs.db強制削除
+        ' ※これを行うとデスクトップが一瞬消えますが、ロックは高確率で外れます
+        If cnt = 5 Then
+            'エクスプローラー再起動
+            MsgBox ("フォルダがロックされているため、エクスプローラを強制再起動します。")
+            Shell "cmd /c taskkill /f /im explorer.exe", vbHide
+            Sleep 1000 ' プロセスが消えるまで一瞬待つ
+            
+            ' Thumbs.dbがあれば削除（読み取り専用・隠し属性も無視して強制削除）
+            If Dir(thumbsPath, vbHidden + vbSystem) <> "" Then
+                Shell "cmd /c del /f /q /a:hsu """ & thumbsPath & """", vbHide
+                Sleep 500 ' 削除の反映を少し待つ
+            End If
+            
+            ' エクスプローラーを再起動
+            Shell "explorer.exe", vbNormalFocus
+            Sleep 2000 ' シェルが完全に立ち上がるまで少し長めに待つ
+        End If
+        
+        DoEvents
+        Sleep 1000 ' 1秒待機
+    Next cnt
+    On Error GoTo 0
+    
+    RobustRename = success
+End Function
 Sub unzipFile2(zipFilePath, toFolderPath)
     '**********************************
     '   ZIPファイル解凍処理
@@ -1552,8 +1559,8 @@ Sub applySampleList()
     Dim arr_w6(1000, 1000) As Variant
     Dim arr16 As Variant
     Dim f_noImageReplaced
-    Dim arr4, arr5, arr6, arr7, arr8, arr9, arr14 As Variant
-    Dim i, j, k, m, n, p, r
+    Dim arr4, arr5, arr6, arr7, arr8, arr8t, arr9, arr14 As Variant
+    Dim i, i2, i3, j, k, m, n, p, r
     Dim targetImage, imageName
     Dim cntColumn
     Dim cnt_del
@@ -1594,11 +1601,18 @@ Sub applySampleList()
                 cnt_main = cnt_main + 1             'mainCategory要素数カウントアップ
                 arr5 = Split(Replace(.Cells(i, 3), ":=", "<"), "<")
                 If cnt_main = 1 Then
+                    arr8t = Split(arr5(1), ",")
                     arr8 = Split(arr5(1), ",")
-                Else
-                    If arr8(0) = "" And arr8(1) = "" And arr8(2) = "" Then
-                        arr8 = Split(arr5(1), ",")
-                    End If
+                    For i2 = 0 To UBound(arr8t)
+                        If arr8t(i2) <> "" Then
+                            arr8t(i2) = Left(arr8t(i2), 1)
+                            If Len(arr8(i2)) >= 2 Then
+                                arr8(i2) = Mid(arr8(i2), 2)
+                            Else
+                                arr8(i2) = ""
+                            End If
+                        End If
+                    Next i2
                 End If
                 arr_main(cnt_main) = arr5(0)        'mainCategory情報配列セット
                 cnt_sub = 0
@@ -1651,7 +1665,7 @@ Sub applySampleList()
         End With
         
         With ThisWorkbook.Sheets(dbSheet)
-            For r = 0 To 2
+            For r = 0 To ThisWorkbook.Sheets("Menu").Cells(1, 11) - 1
                 arr9 = Split(arr8(r), "-")
                 If UBound(arr9) >= 1 Then
                     .Cells(1, startClm + r) = arr9(0)
@@ -1890,7 +1904,7 @@ Sub applySampleList()
             ThisWorkbook.Sheets("SampleList").Columns("G:G").Copy Destination:=.Columns("M:M")
             'チェックデータのうち、チェックタイトルが空欄の列は削除する(=有効なチェックデータなしと判断する)
             cnt_del = 0
-            For r = 0 To 2
+            For r = 0 To ThisWorkbook.Sheets("Menu").Cells(1, 11) - 1
                 If arr8(r) = "" Then
                     .Columns(startClm + r - cnt_del).Delete Shift:=xlToLeft
                     cnt_del = cnt_del + 1

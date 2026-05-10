@@ -236,7 +236,7 @@ Sub createPlist(eqNoClm)
     Dim fileData    As Variant
     Dim find()      As Variant
     Dim rep()       As Variant
-    Dim i, j        As Integer
+    Dim i, j, n     As Integer
     Dim tempFile
     Dim startRow, maxRow, fromRow, toRow
     Dim mainCategoryName
@@ -256,6 +256,7 @@ Sub createPlist(eqNoClm)
         '初期値
         startRow = 4                                     '先頭行番号
         maxRow = .Cells(1048576, eqNoClm).End(xlUp).Row  '最終行番号
+        n = ThisWorkbook.Sheets("Menu").Cells(1, 11)     'iPhoneアプリ記録列数
         
         '上記情報をもとにXMLタグ情報を出力する
         Select Case ThisWorkbook.Sheets("Menu").Cells(1, 7)
@@ -281,14 +282,14 @@ Sub createPlist(eqNoClm)
                 Set node(6) = node(5).appendChild(xmlDoc.createNode(NODE_ELEMENT, "key", ""))
                 node(6).Text = "subCategory"
                 Set node(6) = node(5).appendChild(xmlDoc.createNode(NODE_ELEMENT, "string", ""))
-                node(6).Text = .Cells(j, eqNoClm) & ":=-,-,-"   'サブカテゴリ名
+                node(6).Text = .Cells(j, eqNoClm) & ":=" & Left(Replace(String(n, "-"), "-", "-,"), n * 2 - 1)   'サブカテゴリ名
             Next j
         
             'mainCategory関連情報タグ出力2
             Set node(4) = node(3).appendChild(xmlDoc.createNode(NODE_ELEMENT, "key", ""))
             node(4).Text = "mainCategory"
             Set node(4) = node(3).appendChild(xmlDoc.createNode(NODE_ELEMENT, "string", ""))
-            node(4).Text = mainCategoryName & ":=,," 'メインカテゴリ名
+            node(4).Text = mainCategoryName & ":=" & Left(Replace(String(n, "-"), "-", "-,"), n * 2 - 1) 'メインカテゴリ名
             Set node(4) = node(3).appendChild(xmlDoc.createNode(NODE_ELEMENT, "key", ""))
             node(4).Text = "subFolderMode"
             Set node(4) = node(3).appendChild(xmlDoc.createNode(NODE_ELEMENT, "integer", ""))
@@ -324,14 +325,14 @@ Sub createPlist(eqNoClm)
                         Set node(6) = node(5).appendChild(xmlDoc.createNode(NODE_ELEMENT, "key", ""))
                         node(6).Text = "subCategory"
                         Set node(6) = node(5).appendChild(xmlDoc.createNode(NODE_ELEMENT, "string", ""))
-                        node(6).Text = .Cells(j, eqNoClm) & ":=-,-,-"   'サブカテゴリ名
+                        node(6).Text = .Cells(j, eqNoClm) & ":=" & Left(Replace(String(n, "-"), "-", "-,"), n * 2 - 1)   'サブカテゴリ名
                     Next j
     
                     'mainCategory関連情報タグ出力2
                     Set node(4) = node(3).appendChild(xmlDoc.createNode(NODE_ELEMENT, "key", ""))
                     node(4).Text = "mainCategory"
                     Set node(4) = node(3).appendChild(xmlDoc.createNode(NODE_ELEMENT, "string", ""))
-                    node(4).Text = mainCategoryName & ":=,," 'メインカテゴリ名
+                    node(4).Text = mainCategoryName & ":=" & Left(Replace(String(n, "-"), "-", "-,"), n * 2 - 1) 'メインカテゴリ名
                     Set node(4) = node(3).appendChild(xmlDoc.createNode(NODE_ELEMENT, "key", ""))
                     node(4).Text = "subFolderMode"
                     Set node(4) = node(3).appendChild(xmlDoc.createNode(NODE_ELEMENT, "integer", ""))
